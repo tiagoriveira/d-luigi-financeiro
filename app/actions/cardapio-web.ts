@@ -26,15 +26,28 @@ export async function syncCatalogoCardapioWeb(credentials: CardapioWebToken) {
     }
 
     try {
-        // 1. Buscar o Estabelecimento ID do usuário logado
-        const { data: estabData, error: estabError } = await supabase
+        // 1. Buscar (ou criar) o Estabelecimento do usuário logado
+        let { data: estabData, error: estabError } = await supabase
             .from("estabelecimentos")
             .select("id")
             .eq("user_id", user.id)
             .single();
 
-        if (estabError || !estabData) {
-            return { success: false, error: "Estabelecimento não encontrado para este usuário. Por favor, crie um." };
+        if (estabError && estabError.code === "PGRST116") {
+            // PGRST116 = nenhum registro encontrado → criar automaticamente
+            const nome = user.email?.split("@")[0] ?? "Meu Estabelecimento";
+            const { data: newEstab, error: createError } = await supabase
+                .from("estabelecimentos")
+                .insert({ user_id: user.id, nome })
+                .select("id")
+                .single();
+
+            if (createError || !newEstab) {
+                return { success: false, error: "Falha ao criar estabelecimento automaticamente: " + createError?.message };
+            }
+            estabData = newEstab;
+        } else if (estabError || !estabData) {
+            return { success: false, error: "Erro ao buscar estabelecimento: " + estabError?.message };
         }
 
         const estabelecimentoId = estabData.id;
