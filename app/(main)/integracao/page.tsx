@@ -43,6 +43,10 @@ export default function IntegracaoPage() {
         setTimeout(() => { setConectado(true); setTestando(false); }, 2000);
     };
 
+    // URL base do webhook (exibido apenas quando conectado)
+    const webhookUrl = typeof window !== "undefined" ? `${window.location.origin}/api/webhooks/cardapio-web` : "";
+
+
     return (
         <div>
             <div className="bg-surface rounded-card border border-border shadow-sm overflow-hidden mb-5">
@@ -96,6 +100,32 @@ export default function IntegracaoPage() {
                                         <div className="text-[12px] text-text-3 mb-1">Verificando conexão…</div>
                                         <div className="h-[3px] bg-border rounded-full overflow-hidden">
                                             <div className="h-full bg-accent rounded-full animate-[loading_1.5s_ease_infinite]" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Webhook Info (Aparece após conectar) */}
+                                {conectado && (
+                                    <div className="mt-6 p-4 bg-accent/5 border border-accent/20 rounded-md">
+                                        <div className="flex items-center gap-2 text-accent font-semibold text-[13px] mb-2">
+                                            <span>🔗</span> URL do Webhook
+                                        </div>
+                                        <div className="text-[11.5px] text-text-2 mb-3 leading-relaxed">
+                                            Copie o link abaixo e cole no painel do Cardápio Web (na aba <strong>Adicionar Webhook</strong>) para receber os pedidos em tempo real.
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                value={webhookUrl}
+                                                className="flex-1 font-mono text-[11px] px-3 py-2 border border-border-strong rounded-sm bg-surface text-text-2 outline-none select-all"
+                                            />
+                                            <button
+                                                onClick={() => navigator.clipboard.writeText(webhookUrl)}
+                                                className="px-3 py-2 bg-surface-2 border border-border-strong rounded-sm text-[11px] font-medium hover:bg-surface-3 transition-colors"
+                                            >
+                                                Copiar
+                                            </button>
                                         </div>
                                     </div>
                                 )}
