@@ -174,8 +174,8 @@ export async function syncCatalogoCardapioWeb(credentials: CardapioWebCredential
         for (const item of catalogItems) {
             const nome = item.name ?? item.nome ?? item.title ?? "Produto Desconhecido";
             const preco = Number(item.price ?? item.preco ?? item.value ?? 0);
-            const categoria = item.category?.name ?? item.categoria?.nome ?? item.categoria ?? "Geral";
-            const ativo = item.active ?? item.ativo ?? true;
+            // _interpreted_category_name é injetado pelo loop de categories acima
+            const categoria = item._interpreted_category_name ?? item.category?.name ?? item.categoria?.nome ?? item.categoria ?? "Geral";
 
             const { error: upsertError } = await supabase
                 .from("produtos")
