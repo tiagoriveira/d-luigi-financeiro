@@ -88,32 +88,41 @@ export async function syncCatalogoCardapioWeb(credentials: CardapioWebCredential
 
         const estabelecimentoId = estabData.id;
 
-        // 2. Chamar a API do Cardápio Web (endpoint /catalog conforme doc)
-        // O token já identifica o estabelecimento - não é necessário passar lojaId na URL
+        // 2. Chamar a API do Cardápio Web
+        // O endpoint /catalog foi assumido — pode precisar de ajuste.
+        // O token já identifica o estabelecimento.
         const response = await fetchCardapioWeb("/catalog", credentials);
 
-        // Log do status para debug
         console.log(`[CardapioWeb] GET /catalog → HTTP ${response.status}`);
 
         if (response.status === 401) {
-            return { success: false, error: "Token inválido ou não autorizado. Verifique o token em Configurações → Integrações → API no Cardápio Web." };
+            return { success: false, error: "Token inválido ou não autorizado (401). Verifique o token em Configurações → Integrações → API no Cardápio Web." };
         }
-
         if (response.status === 404) {
-            return { success: false, error: "Endpoint não encontrado (404). Por favor, confirme o endpoint correto na documentação do Cardápio Web (Stoplight)." };
+            return { success: false, error: "Endpoint não encontrado (404). O caminho /catalog pode estar incorreto." };
         }
-
         if (response.status === 429) {
             return { success: false, error: "Limite de requisições atingido (429). Aguarde 1 minuto e tente novamente." };
         }
-
         if (!response.ok) {
             const errorBody = await response.text().catch(() => "");
-            console.error("[CardapioWeb] Erro na API:", response.status, errorBody);
-            return { success: false, error: `Erro na API Cardápio Web: HTTP ${response.status}. ${errorBody ? "Detalhe: " + errorBody : ""}` };
+            return { success: false, error: `Erro na API Cardápio Web: HTTP ${response.status}. Detalhe: ${errorBody.slice(0, 200)}` };
         }
 
-        const data = await response.json();
+        // Verificar se a resposta é realmente JSON antes de tentar parsear
+        const contentType = response.headers.get("content-type") ?? "";
+        const rawBody = await response.text();
+
+        if (!contentType.includes("application/json") || rawBody.trimStart().startsWith("<")) {
+            console.error("[CardapioWeb] Resposta não é JSON. Content-Type:", contentType);
+            console.error("[CardapioWeb] Body (primeiros 300 chars):", rawBody.slice(0, 300));
+            return {
+                success: false,
+                error: `A API retornou HTML em vez de JSON (endpoint incorreto?). URL chamada: integracao.cardapioweb.com/catalog. Início da resposta: "${rawBody.slice(0, 150)}"`,
+            };
+        }
+
+        const data = JSON.parse(rawBody);
 
         // 3. Mapear a resposta - suportando estruturas comuns da API
         // A estrutura real deve ser confirmada na doc oficial (Stoplight)
