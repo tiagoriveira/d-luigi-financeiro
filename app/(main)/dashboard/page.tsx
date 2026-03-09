@@ -112,7 +112,7 @@ export default function DashboardPage() {
                             <YAxis tick={{ fontSize: 10, fill: "#AEAEB2" }} axisLine={false} tickLine={false} width={50} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
                             <Tooltip
                                 contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid rgba(0,0,0,0.07)" }}
-                                formatter={(v: number) => formatBRL(v)}
+                                formatter={(v: any) => formatBRL(Number(v))}
                             />
                             <Bar dataKey="entradas" fill="#2C6E49" radius={[3, 3, 0, 0]} name="Entradas" />
                             <Bar dataKey="saidas" fill="#C0392B" radius={[3, 3, 0, 0]} name="Saídas" />
@@ -131,7 +131,7 @@ export default function DashboardPage() {
                                     <Cell key={i} fill={entry.color} />
                                 ))}
                             </Pie>
-                            <Tooltip formatter={(v: number) => `${v.toFixed(1)}%`} />
+                            <Tooltip formatter={(v: any) => `${Number(v).toFixed(1)}%`} />
                         </PieChart>
                     </ResponsiveContainer>
                     <div className="flex justify-center gap-4 mt-1">

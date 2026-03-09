@@ -203,7 +203,7 @@ export default function CaixaPage() {
                                 <BarChart data={saldoTipos} barSize={14}>
                                     <XAxis dataKey="tipo" tick={{ fontSize: 9, fill: "#AEAEB2" }} axisLine={false} tickLine={false} />
                                     <YAxis hide />
-                                    <Tooltip formatter={(v: number) => formatBRL(v)} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                                    <Tooltip formatter={(v: any) => formatBRL(Number(v))} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
                                     <Bar dataKey="total" fill="#2C6E49" radius={[3, 3, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
