@@ -38,9 +38,29 @@ export default function IntegracaoPage() {
     const [conectado, setConectado] = useState(false);
     const [testando, setTestando] = useState(false);
 
+    // Estados para simular a importação das abas
+    const [loadingCatalogo, setLoadingCatalogo] = useState(false);
+    const [loadingPedidos, setLoadingPedidos] = useState(false);
+
     const testar = () => {
         setTestando(true);
         setTimeout(() => { setConectado(true); setTestando(false); }, 2000);
+    };
+
+    const importarCatalogo = () => {
+        setLoadingCatalogo(true);
+        setTimeout(() => {
+            setLoadingCatalogo(false);
+            alert("Sucesso! O sistema simulou a importação do catálogo do Cardápio Web.");
+        }, 2000); // 2 segundos de loading
+    };
+
+    const importarPedidos = () => {
+        setLoadingPedidos(true);
+        setTimeout(() => {
+            setLoadingPedidos(false);
+            alert("Sucesso! O sistema simulou a importação dos pedidos finalizados.");
+        }, 2000); // 2 segundos de loading
     };
 
     // URL base do webhook (exibido apenas quando conectado)
@@ -174,8 +194,16 @@ export default function IntegracaoPage() {
                                         </span>
                                     ))}
                                 </div>
-                                <button className="inline-flex items-center gap-1.5 px-[11px] py-[5px] rounded-sm text-[11.5px] font-medium bg-accent text-white hover:bg-[#245A3C] transition-all">
-                                    ↓ Importar Catálogo
+                                <button
+                                    onClick={importarCatalogo}
+                                    disabled={loadingCatalogo}
+                                    className="inline-flex items-center justify-center min-w-[130px] gap-1.5 px-[11px] py-[5px] rounded-sm text-[11.5px] font-medium bg-accent text-white hover:bg-[#245A3C] transition-all disabled:opacity-70 disabled:cursor-wait"
+                                >
+                                    {loadingCatalogo ? (
+                                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        "↓ Importar Catálogo"
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -197,7 +225,7 @@ export default function IntegracaoPage() {
                                         <td className="px-5 py-[10px] text-[13px] border-b border-border text-text-2">{p.categoria}</td>
                                         <td className="px-5 py-[10px] text-[13px] border-b border-border text-right tabular-nums">R$ {p.preco.toFixed(2).replace(".", ",")}</td>
                                         <td className="px-5 py-[10px] border-b border-border">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold ${STATUS_COLORS[p.status] || "bg-surface-2 text-text-2"}`}>
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold ${STATUS_COLORS[p.status as keyof typeof STATUS_COLORS] || "bg-surface-2 text-text-2"}`}>
                                                 {p.status === "com_ficha" ? "Com ficha" : p.status === "sem_ficha" ? "Sem ficha" : "Inativo"}
                                             </span>
                                         </td>
@@ -228,8 +256,16 @@ export default function IntegracaoPage() {
                                     <label className="text-[10.5px] font-semibold tracking-[0.06em] uppercase text-text-3">Período</label>
                                     <input type="month" className="w-[155px] px-[11px] py-2 border border-border-strong rounded-sm text-[13px] text-text bg-surface outline-none focus:border-accent transition-all" />
                                 </div>
-                                <button className="inline-flex items-center gap-1.5 px-[15px] py-[7px] rounded-sm text-[12.5px] font-medium bg-accent text-white hover:bg-[#245A3C] transition-all whitespace-nowrap">
-                                    ↓ Importar
+                                <button
+                                    onClick={importarPedidos}
+                                    disabled={loadingPedidos}
+                                    className="inline-flex items-center justify-center min-w-[110px] gap-1.5 px-[15px] py-[7px] rounded-sm text-[12.5px] font-medium bg-accent text-white hover:bg-[#245A3C] transition-all whitespace-nowrap disabled:opacity-70 disabled:cursor-wait"
+                                >
+                                    {loadingPedidos ? (
+                                        <span className="w-4 h-4 border-[2px] border-white/30 border-t-white rounded-full animate-spin" />
+                                    ) : (
+                                        "↓ Importar"
+                                    )}
                                 </button>
                             </div>
                         </div>
