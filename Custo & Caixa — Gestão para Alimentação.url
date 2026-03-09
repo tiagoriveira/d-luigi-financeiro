@@ -1,0 +1,2806 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Custo & Caixa — Gestão para Alimentação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#F5F3EF;--surface:#FFF;--surface-2:#F9F8F5;--surface-3:#F2F0EB;
+  --text:#1C1C1E;--text-2:#6E6E73;--text-3:#AEAEB2;
+  --accent:#2C6E49;--accent-2:#E8F2ED;--accent-warm:#BF6A2E;
+  --red:#C0392B;--red-light:#FBEAE8;--green:#2C6E49;--green-light:#E8F2ED;
+  --yellow:#D97706;--yellow-light:#FEF3C7;--blue:#0284C7;--blue-light:#E0F2FE;
+  --border:rgba(0,0,0,0.07);--border-strong:rgba(0,0,0,0.12);
+  --shadow-sm:0 1px 3px rgba(0,0,0,0.06),0 1px 2px rgba(0,0,0,0.04);
+  --shadow:0 4px 16px rgba(0,0,0,0.07),0 1px 4px rgba(0,0,0,0.04);
+  --shadow-lg:0 12px 40px rgba(0,0,0,0.10),0 4px 12px rgba(0,0,0,0.05);
+  --r:14px;--r-sm:8px;--nav-w:228px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;-webkit-font-smoothing:antialiased}
+
+/* SIDEBAR */
+.sidebar{width:var(--nav-w);min-height:100vh;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;padding:0 0 24px}
+.sidebar-brand{padding:26px 22px 20px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.brand-label{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;letter-spacing:-0.3px;color:var(--text);line-height:1}
+.brand-sub{font-size:10.5px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px;font-weight:500}
+.nav-section{padding:0 10px;margin-bottom:2px}
+.nav-section-label{font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-3);padding:10px 10px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r-sm);cursor:pointer;color:var(--text-2);font-size:13px;font-weight:400;transition:all .15s ease;user-select:none;position:relative}
+.nav-item:hover{background:var(--surface-2);color:var(--text)}
+.nav-item.active{background:var(--accent-2);color:var(--accent);font-weight:500}
+.nav-icon{width:16px;height:16px;flex-shrink:0;opacity:.65}
+.nav-item.active .nav-icon{opacity:1}
+.nav-badge{margin-left:auto;background:var(--accent);color:white;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px}
+.sidebar-footer{margin-top:auto;padding:0 12px}
+.sidebar-biz{background:var(--bg);border-radius:var(--r-sm);padding:11px 13px;display:flex;align-items:center;gap:9px}
+.biz-avatar{width:30px;height:30px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;color:white;font-weight:600;flex-shrink:0}
+.biz-name{font-size:12.5px;font-weight:500;color:var(--text);line-height:1.2}
+.biz-type{font-size:10.5px;color:var(--text-3)}
+
+/* MAIN */
+.main{margin-left:var(--nav-w);flex:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:rgba(245,243,239,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text)}
+.topbar-meta{font-size:11.5px;color:var(--text-3);margin-top:1px}
+.topbar-actions{display:flex;gap:9px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 15px;border-radius:var(--r-sm);font-size:12.5px;font-weight:500;cursor:pointer;border:none;transition:all .15s ease;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.btn-primary{background:var(--accent);color:white}.btn-primary:hover{background:#245A3C}
+.btn-ghost{background:transparent;color:var(--text-2);border:1px solid var(--border-strong)}.btn-ghost:hover{background:var(--surface);color:var(--text)}
+.btn-danger{background:var(--red-light);color:var(--red);border:none}.btn-danger:hover{background:#f5cdc9}
+.btn-sm{padding:5px 11px;font-size:11.5px}
+.btn-xs{padding:3px 8px;font-size:10.5px;border-radius:5px}
+.content{padding:24px 28px;flex:1}
+
+/* SECTIONS */
+.section{display:none;animation:fadeUp .22s ease}
+.section.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi-card{background:var(--surface);border-radius:var(--r);padding:18px 20px;border:1px solid var(--border);box-shadow:var(--shadow-sm)}
+.kpi-label{font-size:10.5px;color:var(--text-3);letter-spacing:.06em;text-transform:uppercase;font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.kpi-value{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--text);line-height:1}
+.kpi-delta{font-size:11.5px;margin-top:5px;display:flex;align-items:center;gap:4px}
+.kpi-delta.pos{color:var(--green)}.kpi-delta.neg{color:var(--red)}.kpi-delta.warn{color:var(--yellow)}
+.kpi-bar{margin-top:9px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+
+/* CARDS */
+.card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:18px}
+.card-header{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.card-title{font-size:13.5px;font-weight:600;color:var(--text)}
+.card-sub{font-size:11.5px;color:var(--text-3);margin-top:2px}
+.card-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);padding:9px 20px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface-2)}
+td{padding:10px 20px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface-2)}
+.td-mono{font-variant-numeric:tabular-nums;font-weight:500}
+.total-row td{font-weight:600;background:var(--surface-2)}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600;letter-spacing:.02em}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-red{background:var(--red-light);color:var(--red)}
+.badge-yellow{background:var(--yellow-light);color:var(--yellow)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-neutral{background:var(--surface-2);color:var(--text-2);border:1px solid var(--border)}
+.badge-warm{background:#FDF0E6;color:var(--accent-warm)}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:18px 20px;border-bottom:1px solid var(--border);align-items:end}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);display:flex;align-items:center;gap:4px}
+input,select,textarea{width:100%;padding:8px 11px;border:1px solid var(--border-strong);border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(44,110,73,.1)}
+input.error{border-color:var(--red)}
+input[type="number"]{font-variant-numeric:tabular-nums}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:20px}
+.chart-wrap{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:18px 20px 12px;box-shadow:var(--shadow-sm)}
+.chart-title{font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text);display:flex;align-items:center;gap:6px}
+
+/* PRODUTO CARDS */
+.produtos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-bottom:20px}
+.produto-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;transition:box-shadow .2s,transform .2s}
+.produto-card:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
+.produto-card-header{padding:14px 16px 10px;background:linear-gradient(135deg,#F9F8F5 0%,#F0EEE8 100%);border-bottom:1px solid var(--border)}
+.produto-name{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;color:var(--text);line-height:1.2}
+.produto-tamanho{font-size:10.5px;color:var(--text-3);margin-top:2px}
+.produto-body{padding:12px 16px}
+.ingr-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:12px}
+.ingr-row:last-of-type{border-bottom:none}
+.ingr-name{color:var(--text-2);flex:1}
+.ingr-qtd{color:var(--text-3);font-size:10.5px;margin:0 7px}
+.ingr-custo{color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}
+.produto-footer{padding:10px 16px;background:var(--surface-2);border-top:1px solid var(--border)}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.pf-label{font-size:9.5px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.pf-value{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;color:var(--text)}
+.pf-value.accent{color:var(--accent)}
+
+/* CAIXA */
+.caixa-grid{display:grid;grid-template-columns:1fr 320px;gap:14px}
+.tipo-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:5px;font-size:9px;font-weight:700;letter-spacing:.04em;flex-shrink:0}
+.tipo-FL{background:var(--green-light);color:var(--green)}
+.tipo-TX{background:#FDF0E6;color:var(--accent-warm)}
+.tipo-MP{background:#EEF2FF;color:#4F46E5}
+.tipo-FX{background:var(--red-light);color:var(--red)}
+.tipo-VA{background:#FDF4FF;color:#9333EA}
+.tipo-OP{background:var(--blue-light);color:var(--blue)}
+.saldo-display{text-align:center;padding:22px 18px;border-bottom:1px solid var(--border)}
+.saldo-label{font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:6px}
+.saldo-value{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;letter-spacing:-1px}
+.saldo-value.pos{color:var(--green)}.saldo-value.neg{color:var(--red)}
+.resumo-conta{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);font-size:12.5px}
+.resumo-conta:last-child{border-bottom:none}
+.conta-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* DESP GRID */
+.desp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* PREP CARD */
+.prep-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden}
+.prep-header{padding:14px 16px 10px;background:linear-gradient(135deg,#F0F4FF,#E8EDF8);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.prep-name{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500}
+.prep-body{padding:10px 16px 14px}
+.prep-ingr-row{display:flex;justify-content:space-between;font-size:11.5px;padding:3px 0;color:var(--text-2)}
+.prep-footer{padding:10px 16px;background:var(--surface-2);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+
+/* VENDA DIRETA */
+.vd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:20px}
+.vd-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-sm);padding:14px 16px;transition:box-shadow .2s}
+.vd-card:hover{box-shadow:var(--shadow)}
+.vd-name{font-weight:500;font-size:13.5px;margin-bottom:2px}
+.vd-category{font-size:10.5px;color:var(--text-3);margin-bottom:10px}
+.vd-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px solid var(--border)}
+.vd-row:last-of-type{border-bottom:none}
+
+/* TOOLTIP */
+.tip{position:relative;display:inline-flex;align-items:center;cursor:help}
+.tip-icon{width:13px;height:13px;border-radius:50%;background:var(--text-3);color:white;font-size:8px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.tip-box{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text);color:white;font-size:11px;padding:7px 10px;border-radius:7px;white-space:nowrap;max-width:220px;white-space:normal;line-height:1.4;z-index:200;box-shadow:var(--shadow-lg);font-weight:400;pointer-events:none}
+.tip-box::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--text)}
+.tip:hover .tip-box{display:block}
+
+/* ONBOARDING */
+#onboarding{position:fixed;inset:0;background:rgba(28,28,30,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:500;display:flex;align-items:center;justify-content:center;animation:fadeIn .3s ease}
+#onboarding.hidden{display:none}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.ob-card{background:var(--surface);border-radius:20px;width:480px;max-width:90vw;box-shadow:var(--shadow-lg);overflow:hidden}
+.ob-top{padding:32px 36px 0;text-align:center}
+.ob-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--text);margin-bottom:6px}
+.ob-tagline{font-size:13px;color:var(--text-3)}
+.ob-steps{display:flex;gap:0;margin:24px 0 0;border-top:1px solid var(--border)}
+.ob-step{flex:1;padding:22px 20px;text-align:center;border-right:1px solid var(--border);position:relative;cursor:pointer;transition:background .15s}
+.ob-step:last-child{border-right:none}
+.ob-step.active{background:var(--accent-2)}
+.ob-step-num{width:28px;height:28px;border-radius:50%;background:var(--border);color:var(--text-3);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;margin:0 auto 8px}
+.ob-step.active .ob-step-num{background:var(--accent);color:white}
+.ob-step.done .ob-step-num{background:var(--green-light);color:var(--green)}
+.ob-step-title{font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:4px}
+.ob-step-sub{font-size:10.5px;color:var(--text-3);line-height:1.4}
+.ob-step.active .ob-step-title{color:var(--accent)}
+.ob-bottom{padding:20px 36px 28px;background:var(--surface-2);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ob-hint{font-size:12px;color:var(--text-2);line-height:1.5;flex:1;margin-right:20px}
+
+/* ALERT BANNERS */
+.alert{border-radius:var(--r-sm);padding:10px 14px;font-size:12.5px;display:flex;align-items:flex-start;gap:9px;margin-bottom:14px}
+.alert-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.alert-warn{background:var(--yellow-light);color:#92400E;border:1px solid #FCD34D}
+.alert-info{background:var(--blue-light);color:#075985;border:1px solid #BAE6FD}
+.alert-ok{background:var(--green-light);color:#14532D;border:1px solid #BBF7D0}
+.alert-title{font-weight:600;margin-bottom:2px}
+
+/* PROGRESS BAR */
+.progress-wrap{margin:6px 0}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:4px}
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s ease}
+
+/* SEARCH */
+.search-wrap{position:relative}
+.search-wrap input{padding-left:32px;width:200px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:13px;pointer-events:none}
+
+/* MISC */
+.pill-tabs{display:flex;gap:3px;background:var(--surface-2);border-radius:var(--r-sm);padding:3px;border:1px solid var(--border);width:fit-content}
+.pill-tab{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:500;color:var(--text-2);cursor:pointer;transition:all .15s;user-select:none}
+.pill-tab.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow-sm)}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.text-right{text-align:right}.text-center{text-align:center}
+.muted{color:var(--text-3)}
+.divider{height:1px;background:var(--border);margin:4px 0}
+.highlight-row td{background:var(--accent-2)!important}
+.empty{text-align:center;padding:40px 24px;color:var(--text-3)}
+.empty-icon{font-size:28px;margin-bottom:10px}
+.empty-title{font-size:14px;font-weight:500;color:var(--text-2);margin-bottom:5px}
+.empty-sub{font-size:12px}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--text);color:white;padding:11px 18px;border-radius:var(--r-sm);font-size:12.5px;font-weight:500;box-shadow:var(--shadow-lg);transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:999;pointer-events:none;max-width:320px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.error{background:var(--red)}
+
+/* PRICE HISTORY */
+.hist-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text-3);margin-left:6px}
+.hist-chip.up{color:var(--red)}.hist-chip.down{color:var(--green)}
+
+/* META ADS MODULE */
+.meta-hero{background:linear-gradient(135deg,#1877F2 0%,#0D5FCC 100%);border-radius:var(--r);padding:28px 32px;color:white;margin-bottom:20px;position:relative;overflow:hidden}
+.meta-hero::before{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06)}
+.meta-hero-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;margin-bottom:6px}
+.meta-hero-sub{font-size:13px;opacity:.8;line-height:1.5}
+.breakeven-display{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:28px;box-shadow:var(--shadow-sm);margin-bottom:20px}
+.breakeven-result{text-align:center;padding:24px;background:linear-gradient(135deg,var(--accent-2),#fff);border-radius:var(--r-sm);border:1px solid rgba(44,110,73,.15);margin:16px 0}
+.breakeven-num{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:300;color:var(--accent);line-height:1}
+.breakeven-label{font-size:12px;color:var(--text-2);margin-top:4px;font-weight:500}
+.breakeven-pizza{font-size:13px;color:var(--text-2);margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.meta-campaign-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:18px 20px;margin-bottom:12px;box-shadow:var(--shadow-sm)}
+.meta-campaign-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.meta-campaign-name{font-weight:600;font-size:14px}
+.meta-campaign-status{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px}
+.meta-campaign-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.meta-metric{text-align:center;padding:10px;background:var(--surface-2);border-radius:var(--r-sm)}
+.meta-metric-val{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500}
+.meta-metric-lbl{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.meta-verdict{margin-top:12px;padding:10px 14px;border-radius:var(--r-sm);font-size:12.5px;display:flex;align-items:center;gap:8px}
+.meta-verdict.ok{background:var(--green-light);color:var(--green)}
+.meta-verdict.bad{background:var(--red-light);color:var(--red)}
+.meta-verdict.warn{background:var(--yellow-light);color:var(--yellow)}
+.budget-slider-wrap{margin:14px 0}
+.budget-slider{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border);outline:none}
+.budget-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+
+/* MONTHLY CLOSING */
+.closing-steps{display:flex;gap:0;margin-bottom:24px}
+.closing-step{flex:1;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-right:none;position:relative;cursor:pointer;transition:background .15s}
+.closing-step:first-child{border-radius:var(--r-sm) 0 0 var(--r-sm)}
+.closing-step:last-child{border-right:1px solid var(--border);border-radius:0 var(--r-sm) var(--r-sm) 0}
+.closing-step.active{background:var(--accent-2);border-color:rgba(44,110,73,.25)}
+.closing-step.done{background:var(--green-light)}
+.closing-step-num{width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--text-3);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+.closing-step.active .closing-step-num{background:var(--accent);color:white}
+.closing-step.done .closing-step-num{background:var(--green);color:white}
+.closing-step-title{font-size:12px;font-weight:600;color:var(--text-2)}
+.closing-step.active .closing-step-title{color:var(--accent)}
+.closing-step.done .closing-step-title{color:var(--green)}
+.closing-panel{display:none}.closing-panel.active{display:block}
+.upload-zone{border:2px dashed var(--border-strong);border-radius:var(--r);padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface-2)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-2)}
+.upload-zone-icon{font-size:32px;margin-bottom:10px}
+.note-viewer{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:400px}
+.note-preview{background:var(--surface-2);border-radius:var(--r-sm);border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative}
+.note-preview img{max-width:100%;max-height:480px;object-fit:contain}
+.checklist-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.checklist-item:last-child{border-bottom:none}
+.check-box{width:20px;height:20px;border-radius:5px;border:2px solid var(--border-strong);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.check-box.checked{background:var(--accent);border-color:var(--accent);color:white}
+.report-preview{background:white;border-radius:var(--r);border:1px solid var(--border);padding:32px;box-shadow:var(--shadow)}
+.report-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;margin-bottom:4px}
+.report-period{font-size:12px;color:var(--text-3);margin-bottom:24px}
+.report-section{margin-bottom:20px}
+.report-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--text)}
+.report-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.report-row:last-child{border-bottom:none}
+.report-total{display:flex;justify-content:space-between;padding:8px 0;font-size:14px;font-weight:700;border-top:2px solid var(--text);margin-top:4px}
+
+/* FREE CATEGORIES */
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag-item{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text-2)}
+.tag-remove{cursor:pointer;color:var(--text-3);font-size:14px;line-height:1;transition:color .1s}
+.tag-remove:hover{color:var(--red)}
+.tag-add-row{display:flex;gap:8px;margin-top:8px}
+.tag-add-row input{flex:1}
+.cat-section{padding:18px 20px;border-bottom:1px solid var(--border)}
+.cat-section:last-child{border-bottom:none}
+.cat-section-title{font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+
+/* INTEGRATION MODULE */
+.integ-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);margin-bottom:0}
+.integ-tab{padding:11px 20px;font-size:12.5px;font-weight:500;color:var(--text-2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;user-select:none}
+.integ-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.integ-tab:hover:not(.active){color:var(--text)}
+.integ-panel{display:none;padding:24px 0 0}.integ-panel.active{display:block}
+.conn-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:28px 32px;max-width:560px;box-shadow:var(--shadow-sm)}
+.conn-status{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.conn-status.connected{background:var(--green-light);color:var(--green)}
+.conn-status.disconnected{background:var(--red-light);color:var(--red)}
+.conn-status.testing{background:var(--yellow-light);color:var(--yellow)}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:none}
+.conn-status.testing .conn-dot{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sync-log-item{display:flex;align-items:flex-start;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border)}
+.sync-log-item:last-child{border-bottom:none}
+.sync-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.import-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.import-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:18px 20px;box-shadow:var(--shadow-sm)}
+.import-card-title{font-size:12px;font-weight:600;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.import-card-value{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--text)}
+.import-card-sub{font-size:11px;color:var(--text-3);margin-top:3px}
+.catálogo-row{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);font-size:13px}
+.catálogo-row:last-child{border-bottom:none}
+.catálogo-row:hover{background:var(--surface-2)}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sidebar-conn-badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:10px;margin-left:auto}
+.sidebar-conn-badge.on{background:var(--green-light);color:var(--green)}
+.sidebar-conn-badge.off{background:var(--red-light);color:var(--red)}
+.loading-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin:8px 0}
+.loading-fill{height:100%;background:var(--accent);border-radius:2px;animation:loading 1.5s ease infinite}
+@keyframes loading{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+</style>
+</head>
+<body>
+
+<!-- ══ ONBOARDING ══ -->
+<div id="onboarding">
+  <div class="ob-card">
+    <div class="ob-top">
+      <div class="ob-logo">Custo &amp; Caixa</div>
+      <div class="ob-tagline">Gestão financeira para quem cuida da comida, não de planilhas.</div>
+    </div>
+    <div class="ob-steps">
+      <div class="ob-step active" id="ob-step-1">
+        <div class="ob-step-num">1</div>
+        <div class="ob-step-title">Configure o negócio</div>
+        <div class="ob-step-sub">Regime tributário, faturamento esperado e lucro desejado</div>
+      </div>
+      <div class="ob-step" id="ob-step-2">
+        <div class="ob-step-num">2</div>
+        <div class="ob-step-title">Cadastre ingredientes</div>
+        <div class="ob-step-sub">Preço de cada item que você compra para produzir</div>
+      </div>
+      <div class="ob-step" id="ob-step-3">
+        <div class="ob-step-num">3</div>
+        <div class="ob-step-title">Monte as fichas</div>
+        <div class="ob-step-sub">O sistema calcula o preço certo de cada produto automaticamente</div>
+      </div>
+    </div>
+    <div class="ob-bottom">
+      <div class="ob-hint" id="ob-hint">
+        <strong>Por onde começar?</strong> Primeiro diga ao sistema quanto você fatura por mês e qual regime de imposto usa. Com isso, o cálculo de preços vai ser preciso desde o início.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <button class="btn btn-primary" onclick="obNext()">Começar →</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeOb()">Já conheço o sistema</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-label">Custo &amp; Caixa</div>
+    <div class="brand-sub">Gestão para Alimentação</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Visão Geral</div>
+    <div class="nav-item active" onclick="nav('dashboard',this)">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Estrutura de Custos</div>
+    <div class="nav-item" onclick="nav('ingredientes',this)">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Ingredientes
+    </div>
+    <div class="nav-item" onclick="nav('preparacoes',this)">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+      Preparações
+    </div>
+    <div class="nav-item" onclick="nav('produtos',this)">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/></svg>
+      Fichas de Custo
+    </div>
+    <div class="nav-item" onclick="nav('vendadireta',this)">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+      Venda Direta
+    </div>
+    <div class="nav-item" onclick="nav('despesas',this)">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+      Despesas &amp; Salários
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Financeiro</div>
+    <div class="nav-item" onclick="nav('caixa',this)">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Fluxo de Caixa
+    </div>
+    <div class="nav-item" onclick="nav('fechamento',this)">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      Fechamento do Mês
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Tráfego Pago</div>
+    <div class="nav-item" onclick="nav('metaads',this)">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+      Meta Ads
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Configurações</div>
+    <div class="nav-item" onclick="nav('categorias',this)">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+      Categorias
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Integrações</div>
+    <div class="nav-item" onclick="nav('integracao',this)" id="nav-integracao">
+      <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+      Cardápio Web
+      <span class="sidebar-conn-badge off" id="sidebar-badge">✗ Off</span>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-biz">
+      <div class="biz-avatar">D</div>
+      <div>
+        <div class="biz-name">D'Luigi</div>
+        <div class="biz-type">Pizzaria · Simples 6%</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div class="topbar-meta" id="page-meta">Maio 2025 · Visão Geral</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">↑ Exportar CSV</button>
+      <button class="btn btn-primary btn-sm" id="btn-add" onclick="handleAdd()">+ Adicionar</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ════ DASHBOARD ════ -->
+    <section class="section active" id="sec-dashboard">
+      <div id="dashboard-alerts"></div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">
+            Faturamento Bruto
+            <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Total de vendas do período registradas no fluxo de caixa (entradas do tipo Venda).</span></span>
+          </div>
+          <div class="kpi-value" id="kpi-fat">—</div>
+          <div class="kpi-delta pos" id="kpi-fat-d">Mês atual</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" style="width:72%;background:var(--accent)"></div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">
+            Custo dos Insumos
+            <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Quanto você gastou em matéria-prima (ingredientes, embalagens). Ideal ficar abaixo de 35% do faturamento em pizzarias.</span></span>
+          </div>
+          <div class="kpi-value" id="kpi-cmv">—</div>
+          <div class="kpi-delta" id="kpi-cmv-pct">—</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-cmv-bar" style="background:var(--accent-warm)"></div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">
+            Custos Fixos + Equipe
+            <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Soma de aluguel, contas, salários e pró-labore. Esses custos existem mesmo que você não venda nada no mês.</span></span>
+          </div>
+          <div class="kpi-value" id="kpi-desp">—</div>
+          <div class="kpi-delta" id="kpi-desp-pct">—</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-desp-bar" style="background:var(--red)"></div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">
+            Lucro Estimado
+            <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Faturamento menos custo dos insumos e despesas fixas. Valor positivo = sobra dinheiro. Negativo = prejuízo.</span></span>
+          </div>
+          <div class="kpi-value" id="kpi-lucro">—</div>
+          <div class="kpi-delta" id="kpi-lucro-pct">—</div>
+          <div class="kpi-bar"><div class="kpi-bar-fill" id="kpi-lucro-bar" style="background:var(--accent)"></div></div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-wrap">
+          <div class="chart-title">Entradas e Saídas por Dia</div>
+          <canvas id="chartFluxo" height="155"></canvas>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-title">
+            Para onde vai cada real?
+            <span class="tip"><span class="tip-icon">?</span><span class="tip-box">De cada R$1,00 que entra, veja quanto vai para insumos, custos fixos e sobra como lucro.</span></span>
+          </div>
+          <canvas id="chartCustos" height="155"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Análise de Margem por Produto</div>
+            <div class="card-sub">Quanto sobra de lucro em cada pizza vendida</div>
+          </div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Produto</th><th>Tamanho</th>
+            <th>Custo dos Ingredientes <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Soma do custo de cada ingrediente usado nessa pizza.</span></span></th>
+            <th>Custo Total* <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Custo dos ingredientes + parte proporcional dos custos fixos e salários.</span></span></th>
+            <th>Preço Praticado</th>
+            <th>Margem</th>
+            <th>Situação</th>
+          </tr></thead>
+          <tbody id="tb-analise"></tbody>
+        </table>
+        <div style="padding:10px 20px;font-size:11px;color:var(--text-3);border-top:1px solid var(--border)">
+          *Custo total inclui rateio proporcional de despesas fixas, salários e encargos sobre a projeção de vendas.
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ INGREDIENTES ════ -->
+    <section class="section" id="sec-ingredientes">
+      <div class="alert alert-info" style="margin-bottom:16px">
+        <span class="alert-icon">💡</span>
+        <div><div class="alert-title">Dica de uso</div>Cadastre aqui tudo que você compra para produzir. Mantenha os preços atualizados sempre que receber uma nota nova — isso garante que os preços dos produtos fiquem corretos automaticamente.</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Ingredientes Diretos</div><div class="card-sub">Itens com custo identificável por produto (mussarela, presunto, massa…)</div></div>
+          <div class="card-actions">
+            <div class="search-wrap"><span class="search-icon">⌕</span><input type="text" id="busca-ingr" placeholder="Buscar…" oninput="filtrarIngredientes()"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nome do Ingrediente</label><input type="text" id="ingr-nome" placeholder="Ex: Mussarela"></div>
+          <div class="form-group"><label class="form-label">Unidade</label>
+            <select id="ingr-unid"><option value="kg">kg</option><option value="unidade">unidade</option><option value="litro">litro</option><option value="pacote">pacote</option><option value="cx">caixa</option></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Preço Atual (R$) <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Preço de compra por unidade de medida. Ex: se o kg de mussarela custa R$32, coloque 32.</span></span></label>
+            <input type="number" id="ingr-preco" placeholder="0,00" step="0.01" min="0">
+          </div>
+          <div class="form-group" style="justify-content:flex-end"><button class="btn btn-primary" onclick="addIngrediente()">+ Adicionar</button></div>
+        </div>
+        <table>
+          <thead><tr><th>Ingrediente</th><th>Unidade</th><th class="text-right">Preço Atual</th><th class="text-right">Último Preço</th><th class="text-right">Variação</th><th class="text-right">Ações</th></tr></thead>
+          <tbody id="tb-ingredientes"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Ingredientes Indiretos</div><div class="card-sub">Embalagens e descartáveis — difíceis de medir por produto, então rateados pelo total produzido no mês</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="addIndir()">+ Adicionar</button>
+        </div>
+        <table>
+          <thead><tr><th>Item</th><th>Unidade</th><th class="text-right">Preço/Un</th><th class="text-right">Qtde Média/Mês</th><th class="text-right">Custo Mensal</th><th class="text-right">Custo por Unidade Vendida</th></tr></thead>
+          <tbody id="tb-indir"></tbody>
+          <tfoot><tr class="total-row"><td colspan="4" class="text-right" style="color:var(--text-2)">Total Mensal:</td><td class="text-right td-mono" id="total-indir">—</td><td class="text-right td-mono muted" id="total-indir-un">—</td></tr></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- ════ PREPARAÇÕES ════ -->
+    <section class="section" id="sec-preparacoes">
+      <div class="alert alert-info" style="margin-bottom:16px">
+        <span class="alert-icon">🍕</span>
+        <div><div class="alert-title">O que são Preparações?</div>São itens que você faz na cozinha antes de montar os produtos finais. Ex: a massa de pizza, o molho de tomate, o strogonoff. Elas têm um custo próprio que entra nas fichas dos produtos.</div>
+      </div>
+      <div id="grid-preps" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
+    </section>
+
+    <!-- ════ PRODUTOS ════ -->
+    <section class="section" id="sec-produtos">
+      <div class="section-header">
+        <div class="pill-tabs" id="tabs-produtos">
+          <div class="pill-tab active" onclick="filtrarProdutos('todos',this)">Todos</div>
+          <div class="pill-tab" onclick="filtrarProdutos('familia',this)">Família</div>
+          <div class="pill-tab" onclick="filtrarProdutos('grande',this)">Grande</div>
+          <div class="pill-tab" onclick="filtrarProdutos('broto',this)">Broto</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--text-2)">
+          <span class="tip">
+            Divisor de preço (markup)
+            <span class="tip-icon" style="margin-left:4px">?</span>
+            <span class="tip-box">Este número diz quanto do preço de venda vai para cobrir os custos. Se você coloca 37,5%, significa que para cada R$100 que entra, R$37,50 pagam os custos do produto. O sistema calcula o preço certo automaticamente.</span>
+          </span>
+          <span style="font-weight:700;color:var(--accent);font-size:16px" id="markup-display">37,5%</span>
+          <span style="font-size:11px;color:var(--text-3)">(definido em Despesas)</span>
+        </div>
+      </div>
+      <div class="produtos-grid" id="grid-produtos"></div>
+    </section>
+
+    <!-- ════ VENDA DIRETA ════ -->
+    <section class="section" id="sec-vendadireta">
+      <div class="alert alert-info" style="margin-bottom:16px">
+        <span class="alert-icon">🥤</span>
+        <div><div class="alert-title">O que é Venda Direta?</div>Produtos que você compra prontos e revende: refrigerantes, cervejas, água, vinhos. Eles têm um markup diferente das pizzas porque a margem nesses itens costuma ser maior.</div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Produtos de Revenda</div><div class="card-sub">Comprados prontos e vendidos sem transformação</div></div>
+          <div class="card-actions">
+            <div style="display:flex;align-items:center;gap:8px;font-size:12.5px">
+              <span style="color:var(--text-2)">Markup bebidas:</span>
+              <input type="number" id="markup-bebidas" value="40" style="width:60px;text-align:center;font-weight:600" oninput="renderVendaDireta()">
+              <span style="color:var(--text-3)">%</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="addVendaDireta()">+ Produto</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Produto</th><th>Categoria</th>
+            <th class="text-right">Custo de Compra</th>
+            <th class="text-right">Preço Sugerido</th>
+            <th class="text-right">Preço Praticado</th>
+            <th class="text-right">Lucro/Un</th>
+            <th class="text-right">Previsão Mensal</th>
+            <th class="text-right">Lucro Previsto/Mês</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="tb-vd"></tbody>
+          <tfoot><tr class="total-row">
+            <td colspan="7" class="text-right" style="color:var(--text-2)">Total Lucro Previsto/Mês:</td>
+            <td class="text-right td-mono" id="total-vd-lucro">—</td>
+            <td></td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- ════ DESPESAS ════ -->
+    <section class="section" id="sec-despesas">
+      <div class="desp-grid">
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">Despesas Fixas do Negócio</div><div class="card-sub">Custos que você paga todo mês independente de quanto vende</div></div>
+              <button class="btn btn-ghost btn-sm" onclick="addDespesa()">+ Adicionar</button>
+            </div>
+            <table>
+              <thead><tr>
+                <th>Descrição</th>
+                <th class="text-right">Valor/Mês</th>
+                <th class="text-right">
+                  Custo por R$1 vendido
+                  <span class="tip"><span class="tip-icon">?</span><span class="tip-box">De cada R$1,00 que você vende, quanto desse valor vai para pagar essa despesa.</span></span>
+                </th>
+                <th></th>
+              </tr></thead>
+              <tbody id="tb-desp"></tbody>
+              <tfoot><tr class="total-row"><td>Total Fixos</td><td class="text-right td-mono" id="total-desp-val">—</td><td class="text-right td-mono" id="total-desp-rat">—</td><td></td></tr></tfoot>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">Pró-Labore (Retirada do Sócio)</div><div class="card-sub">O que o dono retira mensalmente — separado dos salários da equipe</div></div>
+            </div>
+            <div class="form-row" style="grid-template-columns:1fr 1fr auto;align-items:end">
+              <div class="form-group"><label class="form-label">Nome do Sócio</label><input type="text" id="pl-nome" placeholder="Ex: Maria"></div>
+              <div class="form-group"><label class="form-label">Retirada Mensal (R$)</label><input type="number" id="pl-valor" placeholder="0,00" step="100"></div>
+              <button class="btn btn-primary" onclick="addProlabore()" style="margin-bottom:1px">+ Adicionar</button>
+            </div>
+            <table>
+              <thead><tr><th>Sócio</th><th class="text-right">Retirada Mensal</th><th></th></tr></thead>
+              <tbody id="tb-prolabore"></tbody>
+              <tfoot><tr class="total-row"><td>Total Pró-Labore</td><td class="text-right td-mono" id="total-pl">—</td><td></td></tr></tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Mão de Obra (Equipe)</div><div class="card-sub">Salários + 18% de encargos trabalhistas</div></div></div>
+            <table>
+              <thead><tr><th>Função</th><th class="text-right">Salário</th><th class="text-right">Com Encargos</th></tr></thead>
+              <tbody id="tb-salarios"></tbody>
+              <tfoot><tr class="total-row"><td>Total Equipe</td><td class="text-right td-mono" id="total-sal">—</td><td class="text-right td-mono" id="total-sal-enc">—</td></tr></tfoot>
+            </table>
+          </div>
+
+          <div class="card" style="margin-top:0">
+            <div class="card-header"><div class="card-title">Configurações do Negócio</div></div>
+            <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px">
+              <div class="form-group">
+                <label class="form-label">
+                  Faturamento esperado por mês (R$)
+                  <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Quanto você espera vender por mês. Esse número é usado para calcular quanto de cada custo fixo está embutido em cada produto vendido.</span></span>
+                </label>
+                <input type="number" id="cfg-projecao" value="90000" oninput="recalcTudo()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Regime de Imposto</label>
+                <select id="cfg-regime" onchange="recalcTudo()">
+                  <option value="0.06">Simples Nacional — 6%</option>
+                  <option value="0.12">Regime Normal — ICMS 12%</option>
+                  <option value="0.0925">PIS/COFINS — 9,25%</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">
+                  Lucro desejado (%)
+                  <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Quanto % do preço de venda você quer que sobre como lucro. Para pizzarias, de 8% a 15% é considerado saudável.</span></span>
+                </label>
+                <input type="number" id="cfg-lucro" value="10" step="1" min="0" max="100" oninput="recalcTudo()">
+              </div>
+              <div style="background:var(--surface-2);border-radius:var(--r-sm);padding:14px 16px;border:1px solid var(--border)">
+                <div style="font-size:10.5px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
+                  Divisor de Preço Calculado
+                  <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Calculado como: 1 − (imposto + lucro desejado). Divide o custo de ingredientes por esse número para chegar no preço de venda correto.</span></span>
+                </div>
+                <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:400;color:var(--accent)" id="markup-calc">—</div>
+                <div style="font-size:11px;color:var(--text-3);margin-top:3px">Fórmula: 1 − (impostos + lucro)</div>
+              </div>
+              <div style="background:var(--surface-2);border-radius:var(--r-sm);padding:14px 16px;border:1px solid var(--border)">
+                <div style="font-size:10.5px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Distribuição dos Custos</div>
+                <div id="cost-breakdown"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ FLUXO DE CAIXA ════ -->
+    <section class="section" id="sec-caixa">
+      <div class="caixa-grid">
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header">
+              <div><div class="card-title">Registrar Movimentação</div><div class="card-sub">Entradas e saídas do dia</div></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Data</label><input type="date" id="cx-data"></div>
+              <div class="form-group">
+                <label class="form-label">
+                  Tipo
+                  <span class="tip"><span class="tip-icon">?</span><span class="tip-box">FL = venda / entrada · MP = compra de ingrediente · FX = despesa fixa (aluguel, luz…) · VA = despesa variável · TX = taxa bancária · OP = operacional</span></span>
+                </label>
+                <select id="cx-tipo">
+                  <option value="FL">Venda / Entrada (FL)</option>
+                  <option value="MP">Compra de Ingrediente (MP)</option>
+                  <option value="FX">Despesa Fixa (FX)</option>
+                  <option value="VA">Despesa Variável (VA)</option>
+                  <option value="TX">Taxa Bancária (TX)</option>
+                  <option value="OP">Operacional (OP)</option>
+                </select>
+              </div>
+              <div class="form-group"><label class="form-label">Descrição</label><input type="text" id="cx-desc" placeholder="Ex: Vendas em Dinheiro"></div>
+              <div class="form-group"><label class="form-label">Valor (R$)</label><input type="number" id="cx-valor" placeholder="0,00" step="0.01" min="0"></div>
+              <div class="form-group"><label class="form-label">Conta</label>
+                <select id="cx-conta">
+                  <option value="Caixa">Caixa (Dinheiro)</option>
+                  <option value="Pix">Pix</option>
+                  <option value="Crédito">Cartão Crédito</option>
+                  <option value="Débito">Cartão Débito</option>
+                  <option value="Sicoob PJ">Sicoob PJ</option>
+                  <option value="Santander">Santander</option>
+                </select>
+              </div>
+              <div class="form-group" style="justify-content:flex-end"><button class="btn btn-primary" onclick="addLancamento()">Lançar</button></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Extrato do Mês</div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <button class="btn btn-ghost btn-xs" onclick="filtrarCaixa('todos',this)" id="fcx-todos" style="background:var(--surface-3)">Todos</button>
+                <button class="btn btn-ghost btn-xs" onclick="filtrarCaixa('FL',this)">Vendas</button>
+                <button class="btn btn-ghost btn-xs" onclick="filtrarCaixa('MP',this)">Ingredientes</button>
+                <button class="btn btn-ghost btn-xs" onclick="filtrarCaixa('FX',this)">Fixos</button>
+                <button class="btn btn-ghost btn-xs" onclick="filtrarCaixa('VA',this)">Variáveis</button>
+              </div>
+            </div>
+            <div style="max-height:420px;overflow-y:auto">
+              <table>
+                <thead><tr><th>Tipo</th><th>Data</th><th>Descrição</th><th>Conta</th><th class="text-right">Valor</th><th class="text-right">Saldo Acum.</th><th></th></tr></thead>
+                <tbody id="tb-caixa"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="saldo-display">
+              <div class="saldo-label">Saldo do Período</div>
+              <div class="saldo-value pos" id="saldo-total">R$ 0,00</div>
+            </div>
+            <div style="padding:14px 16px 10px;border-bottom:1px solid var(--border)">
+              <div style="font-size:10.5px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Saldo por Conta</div>
+              <div id="resumo-contas"></div>
+            </div>
+            <div style="padding:14px 16px">
+              <div style="font-size:10.5px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Por Tipo de Movimentação</div>
+              <div id="resumo-tipos"></div>
+              <canvas id="chartCaixa" style="margin-top:14px" height="120"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ META ADS ════ -->
+    <section class="section" id="sec-metaads">
+      <div class="meta-hero">
+        <div class="meta-hero-title">Calculadora de Tráfego Pago</div>
+        <div class="meta-hero-sub">Descubra quanto seu anúncio precisa faturar para valer a pena — baseado no custo real dos seus produtos.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+        <!-- Calculadora -->
+        <div class="breakeven-display">
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px">Quanto vou gastar no anúncio?</div>
+          <div style="font-size:12px;color:var(--text-3);margin-bottom:16px">Arraste o slider ou digite o valor do orçamento diário</div>
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+            <span style="font-size:28px;font-weight:300;font-family:'Cormorant Garamond',serif;color:var(--accent)" id="meta-orcamento-display">R$ 50</span>
+            <input type="number" id="meta-orcamento-input" value="50" min="5" max="500" step="5"
+              style="width:90px;font-size:15px;font-weight:600;text-align:center"
+              oninput="syncOrcamento('input')">
+          </div>
+          <div class="budget-slider-wrap">
+            <input type="range" class="budget-slider" id="meta-orcamento-slider" min="5" max="500" step="5" value="50" oninput="syncOrcamento('slider')">
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-top:4px"><span>R$5</span><span>R$500</span></div>
+          </div>
+
+          <div style="margin:16px 0 10px;font-size:12px;font-weight:600;color:var(--text-2)">Produto referência para o cálculo:</div>
+          <select id="meta-produto-ref" style="width:100%;margin-bottom:16px" onchange="calcBreakeven()">
+            <option value="">— Selecione um produto —</option>
+          </select>
+
+          <div class="breakeven-result" id="breakeven-result" style="display:none">
+            <div style="font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Para cobrir o anúncio, você precisa vender pelo menos:</div>
+            <div class="breakeven-num" id="be-valor">R$ 0</div>
+            <div class="breakeven-label">em pedidos extras gerados pelo anúncio</div>
+            <div class="breakeven-pizza" id="be-pizzas"></div>
+          </div>
+
+          <div id="breakeven-empty" style="text-align:center;padding:20px;color:var(--text-3);font-size:13px">
+            Selecione um produto acima para calcular
+          </div>
+
+          <div style="margin-top:16px;padding:14px;background:var(--surface-2);border-radius:var(--r-sm);border:1px solid var(--border)">
+            <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Como é calculado</div>
+            <div style="font-size:12px;color:var(--text-2);line-height:1.6">
+              <strong>Ponto de equilíbrio</strong> = Orçamento do anúncio ÷ Margem do produto<br>
+              Se a margem da pizza é 35% e você gastou R$50, precisa de R$143 em vendas extras para cobrir o anúncio. Acima disso, cada real é lucro.
+            </div>
+          </div>
+        </div>
+
+        <!-- Conexão Meta + Campanhas -->
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-header">
+              <div><div class="card-title">Conectar ao Meta Ads</div><div class="card-sub">Puxa o resultado real das campanhas ativas</div></div>
+              <span class="conn-status disconnected" id="meta-conn-badge"><span class="conn-dot"></span> Desconectado</span>
+            </div>
+            <div style="padding:18px 20px">
+              <div class="form-group" style="margin-bottom:12px">
+                <label class="form-label">Token de Acesso (Meta Marketing API)</label>
+                <input type="password" id="meta-token" placeholder="EAAxxxxxxxxxxxxxxx" style="font-family:monospace;font-size:12px">
+              </div>
+              <div class="form-group" style="margin-bottom:16px">
+                <label class="form-label">ID da Conta de Anúncio</label>
+                <input type="text" id="meta-account-id" placeholder="act_123456789">
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-primary btn-sm" onclick="conectarMeta()">Conectar</button>
+                <button class="btn btn-ghost btn-sm" onclick="window.open('https://developers.facebook.com/tools/explorer','_blank')">Gerar Token ↗</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;font-size:10.5px">Campanhas Ativas — Últimos 7 dias</div>
+          <div id="meta-campanhas">
+            <div class="alert alert-info">
+              <span class="alert-icon">ℹ️</span>
+              <div>Configure o token acima para ver o desempenho real das suas campanhas — ou use os dados simulados abaixo para entender o formato.</div>
+            </div>
+            <!-- Mock campanhas -->
+            <div id="meta-campanhas-mock"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ FECHAMENTO DO MÊS ════ -->
+    <section class="section" id="sec-fechamento">
+      <div class="alert alert-info" style="margin-bottom:20px">
+        <span class="alert-icon">📅</span>
+        <div><div class="alert-title">Fluxo de uso mensal</div>Abra este módulo uma vez por mês. O sistema guia você pelos 4 passos para fechar o mês, subir as notas e gerar o relatório para o contador.</div>
+      </div>
+
+      <div class="closing-steps" id="closing-steps">
+        <div class="closing-step active" id="cs-1" onclick="closingStep(1)">
+          <div class="closing-step-num">1</div>
+          <div class="closing-step-title">Verificar lançamentos</div>
+        </div>
+        <div class="closing-step" id="cs-2" onclick="closingStep(2)">
+          <div class="closing-step-num">2</div>
+          <div class="closing-step-title">Subir notas fiscais</div>
+        </div>
+        <div class="closing-step" id="cs-3" onclick="closingStep(3)">
+          <div class="closing-step-num">3</div>
+          <div class="closing-step-title">Revisar custos</div>
+        </div>
+        <div class="closing-step" id="cs-4" onclick="closingStep(4)">
+          <div class="closing-step-num">4</div>
+          <div class="closing-step-title">Relatório para contador</div>
+        </div>
+      </div>
+
+      <!-- Passo 1: Verificar lançamentos -->
+      <div class="closing-panel active" id="cp-1">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Checklist do Mês</div></div>
+            <div style="padding:16px 20px" id="checklist-container"></div>
+            <div style="padding:12px 20px;border-top:1px solid var(--border)">
+              <button class="btn btn-primary" onclick="closingStep(2)">Próximo → Notas Fiscais</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Resumo do Período</div><div style="font-size:12px;color:var(--text-3)">Lançamentos registrados</div></div>
+            <div style="padding:16px 20px" id="fechamento-resumo"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Passo 2: Notas Fiscais -->
+      <div class="closing-panel" id="cp-2">
+        <div class="note-viewer" id="note-viewer-wrap">
+          <div>
+            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-upload').click()"
+              ondragover="event.preventDefault();this.classList.add('drag')"
+              ondragleave="this.classList.remove('drag')"
+              ondrop="handleDrop(event)">
+              <input type="file" id="file-upload" accept="image/*,application/pdf" multiple style="display:none" onchange="handleFileSelect(event)">
+              <div class="upload-zone-icon">📎</div>
+              <div style="font-size:14px;font-weight:500;margin-bottom:6px">Arraste notas fiscais aqui</div>
+              <div style="font-size:12px;color:var(--text-3)">Ou clique para selecionar · JPG, PNG, PDF</div>
+            </div>
+            <div id="uploaded-files" style="margin-top:14px"></div>
+          </div>
+          <div class="card" style="margin:0">
+            <div class="card-header"><div class="card-title">Preencher a partir da nota</div><div class="card-sub">Veja a nota ao lado e preencha os campos</div></div>
+            <div class="note-preview" id="note-preview" style="min-height:280px;margin:12px">
+              <div style="text-align:center;color:var(--text-3);font-size:13px"><div style="font-size:28px;margin-bottom:8px">🧾</div>Selecione uma nota para visualizar</div>
+            </div>
+            <div class="form-row" style="border-top:1px solid var(--border)">
+              <div class="form-group"><label class="form-label">Fornecedor</label><input type="text" id="nf-fornecedor" placeholder="Ex: Mart Minas" list="fornecedores-list"><datalist id="fornecedores-list"></datalist></div>
+              <div class="form-group"><label class="form-label">Tipo</label>
+                <select id="nf-tipo"><option value="MP">Ingrediente (MP)</option><option value="FX">Despesa Fixa (FX)</option><option value="VA">Variável (VA)</option><option value="OP">Operacional (OP)</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">Valor (R$)</label><input type="number" id="nf-valor" step="0.01" placeholder="0,00"></div>
+              <div class="form-group"><label class="form-label">Data</label><input type="date" id="nf-data"></div>
+              <div class="form-group" style="justify-content:flex-end"><button class="btn btn-primary" onclick="addFromNota()">+ Lançar</button></div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px">
+          <button class="btn btn-ghost" onclick="closingStep(1)">← Voltar</button>
+          <button class="btn btn-primary" onclick="closingStep(3)">Próximo → Revisar Custos</button>
+        </div>
+      </div>
+
+      <!-- Passo 3: Revisar custos -->
+      <div class="closing-panel" id="cp-3">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Ingredientes — atualizar preços</div><div class="card-sub">Algum preço mudou este mês?</div></div>
+            <div style="max-height:380px;overflow-y:auto">
+              <table>
+                <thead><tr><th>Ingrediente</th><th class="text-right">Preço Atual</th><th class="text-right">Atualizar</th></tr></thead>
+                <tbody id="tb-revisar-ingr"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Despesas — confirmar valores</div><div class="card-sub">Alguma despesa fixa mudou?</div></div>
+            <div style="max-height:380px;overflow-y:auto">
+              <table>
+                <thead><tr><th>Despesa</th><th class="text-right">Valor</th><th class="text-right">Editar</th></tr></thead>
+                <tbody id="tb-revisar-desp"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px">
+          <button class="btn btn-ghost" onclick="closingStep(2)">← Voltar</button>
+          <button class="btn btn-primary" onclick="closingStep(4)">Próximo → Gerar Relatório</button>
+        </div>
+      </div>
+
+      <!-- Passo 4: Relatório -->
+      <div class="closing-panel" id="cp-4">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-size:14px;font-weight:600">Relatório Gerencial — pronto para enviar ao contador</div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-ghost" onclick="closingStep(3)">← Voltar</button>
+            <button class="btn btn-primary" onclick="imprimirRelatorio()">🖨 Imprimir / PDF</button>
+          </div>
+        </div>
+        <div class="report-preview" id="report-preview"></div>
+      </div>
+    </section>
+
+    <!-- ════ CATEGORIAS ════ -->
+    <section class="section" id="sec-categorias">
+      <div class="alert alert-info" style="margin-bottom:20px">
+        <span class="alert-icon">🏷</span>
+        <div><div class="alert-title">Categorias personalizadas</div>Adicione ou remova categorias de acordo com o seu negócio. As categorias marcadas com 🔒 são obrigatórias para o cálculo de custos.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Tipos de Custo (Fluxo de Caixa)</div><div class="card-sub">Categorias para classificar movimentações</div></div>
+          <div class="cat-section">
+            <div id="tags-tipos-obrig"></div>
+            <div style="margin-top:12px">
+              <div class="cat-section-title">Categorias Personalizadas</div>
+              <div class="tag-list" id="tags-tipos-custom"></div>
+              <div class="tag-add-row">
+                <input type="text" id="new-tipo" placeholder="Nova categoria (ex: Manutenção)" maxlength="20">
+                <button class="btn btn-primary btn-sm" onclick="addTag('tipos')">+ Adicionar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Contas Bancárias</div><div class="card-sub">Contas e formas de pagamento usadas</div></div>
+          <div class="cat-section">
+            <div class="tag-list" id="tags-contas"></div>
+            <div class="tag-add-row" style="margin-top:12px">
+              <input type="text" id="new-conta" placeholder="Nova conta (ex: Nubank PJ)" maxlength="20">
+              <button class="btn btn-primary btn-sm" onclick="addTag('contas')">+ Adicionar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Categorias de Despesa</div><div class="card-sub">Agrupamentos para o relatório do contador</div></div>
+          <div class="cat-section">
+            <div class="tag-list" id="tags-desp-cat"></div>
+            <div class="tag-add-row" style="margin-top:12px">
+              <input type="text" id="new-desp-cat" placeholder="Nova categoria (ex: Marketing)" maxlength="20">
+              <button class="btn btn-primary btn-sm" onclick="addTag('despcat')">+ Adicionar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Categorias de Produto</div><div class="card-sub">Tipos de produto no cardápio</div></div>
+          <div class="cat-section">
+            <div class="tag-list" id="tags-prod-cat"></div>
+            <div class="tag-add-row" style="margin-top:12px">
+              <input type="text" id="new-prod-cat" placeholder="Nova categoria (ex: Sobremesas)" maxlength="20">
+              <button class="btn btn-primary btn-sm" onclick="addTag('prodcat')">+ Adicionar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="section" id="sec-integracao">
+      <div class="card" style="margin-bottom:20px">
+        <div class="integ-tabs">
+          <div class="integ-tab active" onclick="integTab('conexao',this)">🔌 Conexão</div>
+          <div class="integ-tab" onclick="integTab('catalogo',this)">📋 Catálogo</div>
+          <div class="integ-tab" onclick="integTab('pedidos',this)">🛵 Pedidos</div>
+          <div class="integ-tab" onclick="integTab('log',this)">🗂 Histórico</div>
+        </div>
+
+        <!-- Conexão -->
+        <div class="integ-panel active" id="ip-conexao" style="padding:28px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+            <div>
+              <div style="font-size:15px;font-weight:600;margin-bottom:6px">Token de Acesso</div>
+              <div style="font-size:12.5px;color:var(--text-2);margin-bottom:20px;line-height:1.6">Gere o token em <strong>Cardápio Web → Configurações → Integrações → API de Integração</strong> e cole abaixo.</div>
+              <div class="form-group" style="margin-bottom:14px">
+                <label class="form-label">Token da API</label>
+                <input type="password" id="cw-token" placeholder="cw_live_xxxxxxxxxxxxxxxx" style="font-family:monospace;font-size:12px">
+              </div>
+              <div class="form-group" style="margin-bottom:20px">
+                <label class="form-label">ID do Estabelecimento</label>
+                <input type="text" id="cw-loja-id" placeholder="Ex: 12345">
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <button class="btn btn-primary" onclick="testarConexao()">Testar Conexão</button>
+                <button class="btn btn-ghost" onclick="salvarToken()" id="btn-salvar-token" style="display:none">Salvar e Ativar</button>
+                <span class="conn-status disconnected" id="conn-status-badge"><span class="conn-dot"></span> Não conectado</span>
+              </div>
+              <div id="conn-loading" style="display:none;margin-top:12px">
+                <div style="font-size:12px;color:var(--text-3);margin-bottom:4px">Verificando conexão…</div>
+                <div class="loading-bar"><div class="loading-fill"></div></div>
+              </div>
+              <div id="conn-result" style="margin-top:14px;display:none"></div>
+            </div>
+            <div style="background:var(--surface-2);border-radius:var(--r);padding:20px;border:1px solid var(--border)">
+              <div style="font-size:12.5px;font-weight:600;margin-bottom:14px">O que será sincronizado</div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;gap:10px"><span style="font-size:16px">📋</span><div><div style="font-size:12.5px;font-weight:500">Catálogo completo</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">Produtos, categorias, preços, complementos, status ativo/inativo</div></div></div>
+                <div style="display:flex;gap:10px"><span style="font-size:16px">🛵</span><div><div style="font-size:12.5px;font-weight:500">Pedidos do período</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">Faturamento diário por forma de pagamento → importado direto no Fluxo de Caixa</div></div></div>
+                <div style="display:flex;gap:10px"><span style="font-size:16px">📊</span><div><div style="font-size:12.5px;font-weight:500">Volume por produto</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">Quantidade vendida de cada item → calcula CMV real do período</div></div></div>
+                <div style="display:flex;gap:10px"><span style="font-size:16px">🏪</span><div><div style="font-size:12.5px;font-weight:500">Dados da loja</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">Formas de pagamento aceitas, horários, configurações de entrega</div></div></div>
+                <div style="display:flex;gap:10px"><span style="font-size:16px">🔔</span><div><div style="font-size:12.5px;font-weight:500">Webhook em tempo real</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">Notificação automática a cada novo pedido recebido</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Catálogo -->
+        <div class="integ-panel" id="ip-catalogo" style="padding:0">
+          <div style="padding:18px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:13.5px;font-weight:600">Produtos do Cardápio Web</div>
+              <div style="font-size:11.5px;color:var(--text-3);margin-top:2px">Última sync: <span id="cat-last-sync">—</span></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center">
+              <div style="display:flex;gap:8px;align-items:center;font-size:11.5px;color:var(--text-3)">
+                <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>Com ficha</span>
+                <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--yellow);display:inline-block"></span>Sem ficha</span>
+                <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--text-3);display:inline-block"></span>Inativo</span>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="importarCatalogo()">↓ Importar Catálogo</button>
+            </div>
+          </div>
+          <div id="catalogo-loading" style="display:none;padding:20px 24px">
+            <div style="font-size:12px;color:var(--text-3);margin-bottom:6px">Buscando produtos no Cardápio Web…</div>
+            <div class="loading-bar"><div class="loading-fill"></div></div>
+          </div>
+          <div id="catalogo-content">
+            <div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Catálogo não importado</div><div class="empty-sub">Configure o token na aba Conexão e clique em "Importar Catálogo"</div></div>
+          </div>
+        </div>
+
+        <!-- Pedidos -->
+        <div class="integ-panel" id="ip-pedidos" style="padding:0">
+          <div style="padding:18px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:13.5px;font-weight:600">Importar Pedidos</div>
+              <div style="font-size:11.5px;color:var(--text-2);margin-top:2px;max-width:460px">Os pedidos são agrupados por dia e forma de pagamento e inseridos automaticamente no Fluxo de Caixa — sem digitação manual.</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:flex-end">
+              <div class="form-group" style="margin:0"><label class="form-label" style="margin-bottom:4px">Período</label><input type="month" id="ped-periodo" style="width:155px"></div>
+              <button class="btn btn-primary" onclick="importarPedidos()">↓ Importar</button>
+            </div>
+          </div>
+          <div id="pedidos-loading" style="display:none;padding:20px 24px">
+            <div style="font-size:12px;color:var(--text-3);margin-bottom:6px">Buscando pedidos do período…</div>
+            <div class="loading-bar"><div class="loading-fill"></div></div>
+          </div>
+          <div id="pedidos-kpis" style="display:none;padding:20px 24px;border-bottom:1px solid var(--border)">
+            <div class="import-grid">
+              <div class="import-card"><div class="import-card-title">Total de Pedidos</div><div class="import-card-value" id="pk-total">—</div><div class="import-card-sub">no período</div></div>
+              <div class="import-card"><div class="import-card-title">Faturamento Bruto</div><div class="import-card-value" id="pk-fat">—</div><div class="import-card-sub">soma dos pedidos</div></div>
+              <div class="import-card"><div class="import-card-title">Ticket Médio</div><div class="import-card-value" id="pk-ticket">—</div><div class="import-card-sub">por pedido</div></div>
+            </div>
+          </div>
+          <div id="pedidos-content">
+            <div class="empty"><div class="empty-icon">🛵</div><div class="empty-title">Nenhum pedido importado</div><div class="empty-sub">Selecione o período e clique em "Importar"</div></div>
+          </div>
+        </div>
+
+        <!-- Log -->
+        <div class="integ-panel" id="ip-log" style="padding:0">
+          <div style="padding:14px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:13.5px;font-weight:600">Histórico de Sincronizações</div>
+            <button class="btn btn-ghost btn-sm" onclick="limparLog()">Limpar</button>
+          </div>
+          <div id="sync-log-content">
+            <div class="empty"><div class="empty-icon">🗂</div><div class="empty-title">Sem sincronizações ainda</div><div class="empty-sub">As importações realizadas aparecerão aqui</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══ STATE ═══════════════════════════════════════════════
+const S = {
+  markup: 37.5,
+  ingredientes: [
+    {id:1,nome:'Mussarela',unid:'kg',preco:32.0,precoAnt:28.5},
+    {id:2,nome:'Presunto',unid:'kg',preco:18.9,precoAnt:17.0},
+    {id:3,nome:'Calabresa',unid:'kg',preco:31.47,precoAnt:29.0},
+    {id:4,nome:'Bacon',unid:'kg',preco:22.0,precoAnt:21.9},
+    {id:5,nome:'Palmito',unid:'kg',preco:28.5,precoAnt:25.0},
+    {id:6,nome:'Ervilha',unid:'kg',preco:3.14,precoAnt:3.14},
+    {id:7,nome:'Tomate',unid:'kg',preco:6.99,precoAnt:5.50},
+    {id:8,nome:'Azeitona',unid:'kg',preco:15.62,precoAnt:14.0},
+    {id:9,nome:'Orégano',unid:'kg',preco:22.0,precoAnt:20.0},
+    {id:10,nome:'Molho de Tomate',unid:'kg',preco:8.5,precoAnt:8.5},
+    {id:11,nome:'Catupiry',unid:'kg',preco:40.9,precoAnt:38.0},
+    {id:12,nome:'Parmesão',unid:'kg',preco:34.0,precoAnt:32.0},
+    {id:13,nome:'Atum',unid:'kg',preco:51.8,precoAnt:48.0},
+    {id:14,nome:'Cebola',unid:'kg',preco:5.49,precoAnt:3.99},
+    {id:15,nome:'Massa Família',unid:'unidade',preco:3.85,precoAnt:3.50},
+    {id:16,nome:'Massa Grande',unid:'unidade',preco:2.10,precoAnt:1.90},
+    {id:17,nome:'Massa Broto',unid:'unidade',preco:1.20,precoAnt:1.10},
+    {id:18,nome:'Lombo Canadense',unid:'kg',preco:24.9,precoAnt:22.9},
+    {id:19,nome:'Filé de Peito',unid:'kg',preco:17.9,precoAnt:16.5},
+    {id:20,nome:'Tomate Seco',unid:'kg',preco:45.0,precoAnt:42.0},
+    {id:21,nome:'Farinha de Trigo',unid:'kg',preco:4.38,precoAnt:4.79},
+    {id:22,nome:'Sal',unid:'kg',preco:1.20,precoAnt:1.20},
+    {id:23,nome:'Açúcar',unid:'kg',preco:3.20,precoAnt:2.99},
+    {id:24,nome:'Óleo',unid:'litro',preco:6.50,precoAnt:6.50},
+    {id:25,nome:'Fermento Fresco',unid:'unidade',preco:7.98,precoAnt:6.80},
+    {id:26,nome:'Creme de Leite',unid:'kg',preco:3.39,precoAnt:3.39},
+    {id:27,nome:'Ketchup',unid:'kg',preco:10.0,precoAnt:9.30},
+    {id:28,nome:'Mostarda',unid:'kg',preco:9.50,precoAnt:9.50},
+    {id:29,nome:'Caldo Knorr',unid:'kg',preco:18.9,precoAnt:19.0},
+    {id:30,nome:'Coco Ralado',unid:'kg',preco:32.99,precoAnt:31.80},
+  ],
+  indiretos: [
+    {id:1,nome:'Caixa Broto',unid:'unidade',preco:0.76,qtdeMes:800},
+    {id:2,nome:'Caixa Grande',unid:'unidade',preco:1.90,qtdeMes:500},
+    {id:3,nome:'Caixa Família',unid:'unidade',preco:1.08,qtdeMes:300},
+    {id:4,nome:'Envelope Térmico',unid:'unidade',preco:0.45,qtdeMes:1200},
+  ],
+  preparacoes: [
+    {id:1,nome:'Massa de Pizza Família',rendimento:'1 unidade',ingrs:[
+      {ingrId:21,qtd:0.700},{ingrId:21,qtd:0,nome:'Pó Royal',preco:0.39,qtd2:0.0012},
+      {ingrId:22,qtd:0.0008},{ingrId:23,qtd:0.002},{ingrId:24,qtd:0.06},{ingrId:25,qtd:0.0012}
+    ]},
+    {id:2,nome:'Massa de Pizza Grande',rendimento:'1 unidade',ingrs:[
+      {ingrId:21,qtd:0.350},{ingrId:22,qtd:0.0004},{ingrId:23,qtd:0.001},{ingrId:24,qtd:0.03},{ingrId:25,qtd:0.0006}
+    ]},
+    {id:3,nome:'Massa de Pizza Broto',rendimento:'1 unidade',ingrs:[
+      {ingrId:21,qtd:0.175},{ingrId:22,qtd:0.0002},{ingrId:23,qtd:0.0005},{ingrId:24,qtd:0.015},{ingrId:25,qtd:0.0003}
+    ]},
+    {id:4,nome:'Strogonoff de Frango',rendimento:'1 kg',ingrs:[
+      {ingrId:14,qtd:0.025},{ingrId:29,qtd:0.025},{ingrId:28,qtd:0.045},
+      {ingrId:26,qtd:0.085},{ingrId:27,qtd:0.075},{ingrId:19,qtd:1.0}
+    ]},
+    {id:5,nome:'Strogonoff de Filé',rendimento:'1 kg',ingrs:[
+      {ingrId:14,qtd:0.025},{ingrId:28,qtd:0.045},{ingrId:26,qtd:0.085},{ingrId:27,qtd:0.075}
+    ]},
+  ],
+  produtos: [
+    {id:1,nome:'Americana',tamanho:'Família',filtro:'familia',ingrs:[
+      {ingrId:10,qtd:0.08},{ingrId:1,qtd:0.52},{ingrId:2,qtd:0.40},
+      {ingrId:5,qtd:0.60},{ingrId:6,qtd:0.40},{ingrId:4,qtd:0.20},
+      {ingrId:7,qtd:0.20},{ingrId:9,qtd:0.12},{ingrId:8,qtd:0.08},{ingrId:15,qtd:1}
+    ],precoAtual:107},
+    {id:2,nome:'Americana',tamanho:'Grande',filtro:'grande',ingrs:[
+      {ingrId:10,qtd:0.04},{ingrId:1,qtd:0.26},{ingrId:2,qtd:0.20},
+      {ingrId:5,qtd:0.30},{ingrId:6,qtd:0.20},{ingrId:4,qtd:0.10},
+      {ingrId:7,qtd:0.10},{ingrId:9,qtd:0.06},{ingrId:8,qtd:0.04},{ingrId:16,qtd:1}
+    ],precoAtual:65},
+    {id:3,nome:'Americana',tamanho:'Broto',filtro:'broto',ingrs:[
+      {ingrId:10,qtd:0.02},{ingrId:1,qtd:0.13},{ingrId:2,qtd:0.10},
+      {ingrId:5,qtd:0.15},{ingrId:6,qtd:0.10},{ingrId:4,qtd:0.05},
+      {ingrId:7,qtd:0.05},{ingrId:9,qtd:0.03},{ingrId:8,qtd:0.02},{ingrId:17,qtd:1}
+    ],precoAtual:33},
+    {id:4,nome:'À Moda da Casa',tamanho:'Família',filtro:'familia',ingrs:[
+      {ingrId:10,qtd:0.08},{ingrId:1,qtd:0.52},{ingrId:2,qtd:0.40},
+      {ingrId:3,qtd:0.48},{ingrId:4,qtd:0.20},{ingrId:12,qtd:0.24},
+      {ingrId:11,qtd:0.48},{ingrId:7,qtd:0.20},{ingrId:9,qtd:0.12},{ingrId:15,qtd:1}
+    ],precoAtual:112},
+    {id:5,nome:'À Moda da Casa',tamanho:'Grande',filtro:'grande',ingrs:[
+      {ingrId:10,qtd:0.04},{ingrId:1,qtd:0.26},{ingrId:2,qtd:0.20},
+      {ingrId:3,qtd:0.24},{ingrId:4,qtd:0.10},{ingrId:12,qtd:0.12},
+      {ingrId:11,qtd:0.24},{ingrId:7,qtd:0.10},{ingrId:9,qtd:0.06},{ingrId:16,qtd:1}
+    ],precoAtual:70},
+    {id:6,nome:'À Moda da Casa',tamanho:'Broto',filtro:'broto',ingrs:[
+      {ingrId:10,qtd:0.02},{ingrId:1,qtd:0.13},{ingrId:2,qtd:0.10},
+      {ingrId:3,qtd:0.12},{ingrId:4,qtd:0.05},{ingrId:12,qtd:0.06},
+      {ingrId:11,qtd:0.12},{ingrId:7,qtd:0.05},{ingrId:9,qtd:0.03},{ingrId:17,qtd:1}
+    ],precoAtual:36},
+    {id:7,nome:'Especial do Pizzaiolo',tamanho:'Família',filtro:'familia',ingrs:[
+      {ingrId:10,qtd:0.08},{ingrId:1,qtd:0.52},{ingrId:20,qtd:0.40},
+      {ingrId:18,qtd:0.30},{ingrId:2,qtd:0.20},{ingrId:14,qtd:0.12},
+      {ingrId:7,qtd:0.20},{ingrId:9,qtd:0.12},{ingrId:15,qtd:1}
+    ],precoAtual:120},
+    {id:8,nome:'Especial do Pizzaiolo',tamanho:'Grande',filtro:'grande',ingrs:[
+      {ingrId:10,qtd:0.04},{ingrId:1,qtd:0.26},{ingrId:20,qtd:0.20},
+      {ingrId:18,qtd:0.15},{ingrId:2,qtd:0.10},{ingrId:14,qtd:0.06},
+      {ingrId:7,qtd:0.10},{ingrId:9,qtd:0.06},{ingrId:16,qtd:1}
+    ],precoAtual:75},
+  ],
+  despesas: [
+    {id:1,desc:'Aluguel',valor:2350},
+    {id:2,desc:'Contabilidade',valor:900},
+    {id:3,desc:'Energia Elétrica',valor:1500},
+    {id:4,desc:'Água',valor:300},
+    {id:5,desc:'Telefone / Internet',valor:650},
+    {id:6,desc:'Sistema (Cardápio Web + PDV)',valor:308},
+    {id:7,desc:'Publicidade',valor:1500},
+    {id:8,desc:'Empréstimo / Consórcio',valor:2000},
+    {id:9,desc:'Aplicativos de Entrega',valor:320},
+    {id:10,desc:'Gasolina',valor:800},
+    {id:11,desc:'Nutricionista',valor:240},
+    {id:12,desc:'IB Consultoria',valor:1500},
+  ],
+  prolabore: [
+    {id:1,nome:'Sócio Responsável',valor:7500},
+  ],
+  salarios: [
+    {id:1,func:'Média da Equipe (colaboradores)',salario:14000},
+  ],
+  vendaDireta: [
+    {id:1,nome:'Guaraná Antarctica 350ml',categoria:'Refrigerante',custo:1.79,precoAtual:5,previsaoMes:200},
+    {id:2,nome:'Coca-Cola 350ml',categoria:'Refrigerante',custo:1.99,precoAtual:5,previsaoMes:180},
+    {id:3,nome:'Fanta Laranja 350ml',categoria:'Refrigerante',custo:1.99,precoAtual:5,previsaoMes:80},
+    {id:4,nome:'Coca-Cola 600ml',categoria:'Refrigerante',custo:3.59,precoAtual:5.5,previsaoMes:150},
+    {id:5,nome:'Brahma Chopp 350ml',categoria:'Cerveja',custo:2.49,precoAtual:5,previsaoMes:120},
+    {id:6,nome:'Skol Pilsen 350ml',categoria:'Cerveja',custo:2.59,precoAtual:5,previsaoMes:100},
+    {id:7,nome:'Petra Puro Malte 600ml',categoria:'Cerveja',custo:4.99,precoAtual:10,previsaoMes:80},
+    {id:8,nome:'Daflora s/Gás 510ml',categoria:'Água',custo:0.65,precoAtual:2.5,previsaoMes:300},
+    {id:9,nome:'Daflora c/Gás 510ml',categoria:'Água',custo:0.91,precoAtual:3.0,previsaoMes:120},
+    {id:10,nome:'Vinho Suave',categoria:'Vinho',custo:18.0,precoAtual:35,previsaoMes:20},
+    {id:11,nome:'Vinho Seco',categoria:'Vinho',custo:22.0,precoAtual:45,previsaoMes:15},
+  ],
+  lancamentos: [
+    {id:1,data:'2025-05-01',tipo:'FL',desc:'Vendas em Dinheiro',valor:890,conta:'Caixa'},
+    {id:2,data:'2025-05-01',tipo:'FL',desc:'Vendas em Pix',valor:1240,conta:'Pix'},
+    {id:3,data:'2025-05-01',tipo:'FL',desc:'Cartão Crédito',valor:2150,conta:'Crédito'},
+    {id:4,data:'2025-05-01',tipo:'FL',desc:'Cartão Débito',valor:1580,conta:'Débito'},
+    {id:5,data:'2025-05-02',tipo:'MP',desc:'Mart Minas (Cartão)',valor:-252.23,conta:'Crédito'},
+    {id:6,data:'2025-05-02',tipo:'MP',desc:'Mart Minas (Cartão)',valor:-96.8,conta:'Crédito'},
+    {id:7,data:'2025-05-02',tipo:'MP',desc:'Economart',valor:-154.46,conta:'Crédito'},
+    {id:8,data:'2025-05-03',tipo:'FL',desc:'Vendas em Dinheiro',valor:1020,conta:'Caixa'},
+    {id:9,data:'2025-05-03',tipo:'FL',desc:'Vendas em Pix',valor:1640,conta:'Pix'},
+    {id:10,data:'2025-05-03',tipo:'TX',desc:'Taxa Bancária Sicoob',valor:-42.5,conta:'Sicoob PJ'},
+    {id:11,data:'2025-05-04',tipo:'FL',desc:'Vendas em Crédito',valor:3200,conta:'Crédito'},
+    {id:12,data:'2025-05-04',tipo:'FX',desc:'Cardápio Web (Mensal)',valor:-264.8,conta:'Crédito'},
+    {id:13,data:'2025-05-05',tipo:'MP',desc:'ABC Distribuidora',valor:-225.62,conta:'Crédito'},
+    {id:14,data:'2025-05-05',tipo:'FL',desc:'Vendas em Dinheiro',valor:750,conta:'Caixa'},
+    {id:15,data:'2025-05-06',tipo:'FX',desc:'Canva (Mensal)',valor:-35,conta:'Crédito'},
+    {id:16,data:'2025-05-06',tipo:'FL',desc:'Vendas em Pix',valor:1980,conta:'Pix'},
+    {id:17,data:'2025-05-07',tipo:'VA',desc:'DS Uniformes',valor:-310,conta:'Crédito'},
+    {id:18,data:'2025-05-07',tipo:'FL',desc:'Vendas em Crédito',valor:2800,conta:'Crédito'},
+  ],
+  cfg:{projecao:90000,imposto:0.06,lucro:10},
+  filtroIngr:'',filtroProduto:'todos',filtroCaixa:'todos',
+};
+let IDs={ingr:31,indir:5,prep:6,prod:9,desp:13,pl:2,sal:2,vd:12,cx:19};
+
+// ═══ UTILS ════════════════════════════════════════════════
+const fmt = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtN = v => v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtSigned = v => (v>=0?'+':'')+fmtN(v);
+const getIngr = id => S.ingredientes.find(i=>i.id===id);
+function calcCustoDirecto(prod){
+  return prod.ingrs.reduce((s,r)=>{const i=getIngr(r.ingrId);return s+(i?i.preco*r.qtd:0);},0);
+}
+function calcCustoPrep(prep){
+  return prep.ingrs.reduce((s,r)=>{
+    if(r.nome) return s+(r.preco||0)*(r.qtd2||0);
+    const i=getIngr(r.ingrId);return s+(i?i.preco*r.qtd:0);
+  },0);
+}
+function getMarkup(){
+  const el=document.getElementById('markup-global-val');
+  return el?parseFloat(el.dataset.val)/100:S.markup/100;
+}
+function calcPrecoSugerido(prod){
+  const mk=getMarkup();
+  return mk>0?calcCustoDirecto(prod)/mk:0;
+}
+function calcCustoTotal(prod){
+  const cd=calcCustoDirecto(prod);
+  const proj=S.cfg.projecao||90000;
+  const desp=S.despesas.reduce((s,d)=>s+d.valor,0);
+  const sal=S.salarios.reduce((s,d)=>s+d.salario*1.18,0);
+  const pl=S.prolabore.reduce((s,d)=>s+d.valor,0);
+  const totalFixos=desp+sal+pl;
+  const rateio=proj>0?(totalFixos/proj)*prod.precoAtual:0;
+  return cd+rateio;
+}
+function getMargemBenchmark(margem){
+  if(margem>=20) return {cls:'badge-green',txt:'✓ Excelente'};
+  if(margem>=12) return {cls:'badge-green',txt:'✓ Saudável'};
+  if(margem>=5)  return {cls:'badge-yellow',txt:'⚠ Atenção'};
+  return {cls:'badge-red',txt:'✗ Crítico'};
+}
+function toast(msg,tipo='ok',delay=2600){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show'+(tipo==='error'?' error':'');
+  setTimeout(()=>t.classList.remove('show','error'),delay);
+}
+function handleAdd(){
+  const s=document.querySelector('.section.active');
+  if(!s)return;
+  const id=s.id.replace('sec-','');
+  const map={ingredientes:'ingr-nome',caixa:'cx-valor',despesas:'pl-valor',vendadireta:null};
+  if(id in map && map[id]) document.getElementById(map[id]).focus();
+  else if(id==='vendadireta') addVendaDireta();
+  else toast('Use o formulário na seção para adicionar');
+}
+function exportCSV(){
+  const rows=[['Data','Tipo','Descrição','Conta','Valor']];
+  S.lancamentos.forEach(l=>rows.push([l.data,l.tipo,l.desc,l.conta,l.valor]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='fluxo_caixa.csv';a.click();
+  toast('CSV exportado ✓');
+}
+
+// ═══ NAVIGATION ══════════════════════════════════════════
+const pageMeta={
+  dashboard:['Dashboard','Maio 2025 · Visão Geral'],
+  ingredientes:['Ingredientes','Base de preços para cálculo das fichas'],
+  preparacoes:['Preparações','Massas, molhos e subprodutos da cozinha'],
+  produtos:['Fichas de Custo','Preço calculado automaticamente por produto'],
+  vendadireta:['Venda Direta','Bebidas e itens de revenda'],
+  despesas:['Despesas, Salários & Configurações','Estrutura de custos fixos do negócio'],
+  caixa:['Fluxo de Caixa','Movimentações diárias do mês'],
+  fechamento:['Fechamento do Mês','Input mensal guiado — notas, custos e relatório para o contador'],
+  metaads:['Meta Ads','Calculadora de ponto de equilíbrio e desempenho de campanhas'],
+  categorias:['Categorias','Personalize tipos de custo, contas bancárias e categorias de despesa'],
+  integracao:['Integração Cardápio Web','Sincronização automática de produtos, preços e pedidos'],
+};
+function nav(id,el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sec-'+id).classList.add('active');
+  const[t,m]=pageMeta[id];
+  document.getElementById('page-title').textContent=t;
+  document.getElementById('page-meta').textContent=m;
+  renderSection(id);
+}
+function renderSection(id){
+  ({dashboard:renderDashboard,ingredientes:renderIngredientes,
+    preparacoes:renderPreparacoes,produtos:renderProdutos,
+    vendadireta:renderVendaDireta,despesas:renderDespesas,
+    caixa:renderCaixa,integracao:renderIntegracao,
+    metaads:renderMetaAds,fechamento:renderFechamento,
+    categorias:renderCategorias})[id]?.();
+}
+
+// ═══ ONBOARDING ══════════════════════════════════════════
+let obStep=1;
+const obHints=[
+  '<strong>1. Configure o negócio:</strong> Vá em "Despesas & Salários" → Role até "Configurações do Negócio". Coloque seu faturamento esperado, regime de imposto e quanto de lucro quer ter.',
+  '<strong>2. Cadastre ingredientes:</strong> Vá em "Ingredientes" e adicione cada item que você compra com o preço atual por kg ou unidade. Mantenha sempre atualizado.',
+  '<strong>3. Monte as fichas:</strong> Vá em "Fichas de Custo". O sistema já calculou o preço sugerido de cada produto. Compare com o que você pratica e ajuste se necessário.',
+];
+function obNext(){
+  if(obStep<3){
+    document.getElementById('ob-step-'+obStep).classList.replace('active','done');
+    obStep++;
+    document.getElementById('ob-step-'+obStep).classList.add('active');
+    document.getElementById('ob-hint').innerHTML=obHints[obStep-1];
+    if(obStep===3) document.querySelector('#onboarding .btn-primary').textContent='Entendido!';
+  } else { closeOb(); }
+}
+function closeOb(){document.getElementById('onboarding').classList.add('hidden');}
+
+// ═══ DASHBOARD ═══════════════════════════════════════════
+let cFluxo=null,cCustos=null;
+function renderDashboard(){
+  const lc=S.lancamentos;
+  const entradas=lc.filter(l=>l.valor>0).reduce((s,l)=>s+l.valor,0);
+  const cmv=lc.filter(l=>l.tipo==='MP').reduce((s,l)=>s+Math.abs(l.valor),0);
+  const desp=S.despesas.reduce((s,d)=>s+d.valor,0);
+  const sal=S.salarios.reduce((s,d)=>s+d.salario*1.18,0);
+  const pl=S.prolabore.reduce((s,d)=>s+d.valor,0);
+  const totalDesp=desp+sal+pl;
+  const lucro=entradas-cmv-totalDesp;
+
+  document.getElementById('kpi-fat').textContent=fmt(entradas);
+  document.getElementById('kpi-fat-d').textContent='Total de entradas no período';
+  document.getElementById('kpi-cmv').textContent=fmt(cmv);
+  const cmvPct=entradas>0?(cmv/entradas*100):0;
+  document.getElementById('kpi-cmv-pct').textContent=cmvPct.toFixed(1)+'% do faturamento';
+  document.getElementById('kpi-cmv-pct').className='kpi-delta '+(cmvPct<35?'pos':cmvPct<45?'warn':'neg');
+  document.getElementById('kpi-cmv-bar').style.width=Math.min(cmvPct,100)+'%';
+  document.getElementById('kpi-desp').textContent=fmt(totalDesp);
+  const despPct=entradas>0?(totalDesp/entradas*100):0;
+  document.getElementById('kpi-desp-pct').textContent=despPct.toFixed(1)+'% do faturamento';
+  document.getElementById('kpi-desp-pct').className='kpi-delta '+(despPct<45?'pos':'neg');
+  document.getElementById('kpi-desp-bar').style.width=Math.min(despPct,100)+'%';
+  document.getElementById('kpi-lucro').textContent=fmt(Math.abs(lucro));
+  const lucroPct=entradas>0?(lucro/entradas*100):0;
+  document.getElementById('kpi-lucro-pct').textContent=lucroPct.toFixed(1)+'% de margem';
+  document.getElementById('kpi-lucro-pct').className='kpi-delta '+(lucro>=0?'pos':'neg');
+  document.getElementById('kpi-lucro-bar').style.width=Math.max(0,Math.min(Math.abs(lucroPct),100))+'%';
+
+  // Alerts
+  const alerts=[];
+  if(cmvPct>40) alerts.push({cls:'alert-warn',icon:'⚠️',t:'Custo de insumos alto',m:`Seus ingredientes estão consumindo ${cmvPct.toFixed(1)}% do faturamento. O ideal para pizzarias é abaixo de 35%. Revise as fichas de custo ou renegocie com fornecedores.`});
+  if(lucro<0) alerts.push({cls:'alert-red',icon:'🚨',t:'Resultado negativo no período',m:'As entradas registradas não cobrem os custos. Verifique se todos os lançamentos foram feitos corretamente.'});
+  else if(lucroPct<5) alerts.push({cls:'alert-warn',icon:'⚠️',t:'Margem muito baixa',m:`Margem de ${lucroPct.toFixed(1)}%. Para ter reserva e reinvestir, o recomendado é acima de 8%.`});
+  const aEl=document.getElementById('dashboard-alerts');
+  aEl.innerHTML=alerts.map(a=>`<div class="alert ${a.cls}"><span class="alert-icon">${a.icon}</span><div><div class="alert-title">${a.t}</div>${a.m}</div></div>`).join('');
+
+  // Tabela análise
+  const tbody=document.getElementById('tb-analise');
+  tbody.innerHTML=S.produtos.map(p=>{
+    const cd=calcCustoDirecto(p);
+    const ct=calcCustoTotal(p);
+    const margem=p.precoAtual>0?((p.precoAtual-ct)/p.precoAtual*100):0;
+    const bm=getMargemBenchmark(margem);
+    return `<tr>
+      <td style="font-weight:500">${p.nome}</td>
+      <td><span class="badge badge-neutral">${p.tamanho}</span></td>
+      <td class="td-mono">${fmt(cd)}</td>
+      <td class="td-mono">${fmt(ct)}</td>
+      <td class="td-mono" style="font-weight:600">${fmt(p.precoAtual)}</td>
+      <td class="td-mono" style="font-weight:700;color:${margem>=12?'var(--green)':margem>=5?'var(--yellow)':'var(--red)'}">${margem.toFixed(1)}%</td>
+      <td><span class="badge ${bm.cls}">${bm.txt}</span></td>
+    </tr>`;
+  }).join('');
+
+  renderChartFluxo(lc);
+  renderChartCustos(cmv,totalDesp,entradas);
+}
+function renderChartFluxo(lc){
+  const dias=[...new Set(lc.map(l=>l.data))].sort();
+  const rec=dias.map(d=>lc.filter(l=>l.data===d&&l.valor>0).reduce((s,l)=>s+l.valor,0));
+  const sai=dias.map(d=>lc.filter(l=>l.data===d&&l.valor<0).reduce((s,l)=>s+Math.abs(l.valor),0));
+  const labels=dias.map(d=>d.split('-')[2]+'/'+d.split('-')[1]);
+  const ctx=document.getElementById('chartFluxo').getContext('2d');
+  if(cFluxo)cFluxo.destroy();
+  cFluxo=new Chart(ctx,{type:'bar',data:{labels,datasets:[
+    {label:'Entradas',data:rec,backgroundColor:'rgba(44,110,73,.18)',borderColor:'#2C6E49',borderWidth:1.5,borderRadius:4},
+    {label:'Saídas',data:sai,backgroundColor:'rgba(192,57,43,.13)',borderColor:'#C0392B',borderWidth:1.5,borderRadius:4},
+  ]},options:{responsive:true,plugins:{legend:{labels:{font:{family:'DM Sans',size:11},boxWidth:10}}},
+    scales:{x:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}},
+      y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{family:'DM Sans',size:10},callback:v=>'R$'+(v/1000).toFixed(1)+'k'}}}}});
+}
+function renderChartCustos(cmv,desp,fat){
+  const ctx=document.getElementById('chartCustos').getContext('2d');
+  if(cCustos)cCustos.destroy();
+  const lucro=Math.max(0,fat-cmv-desp);
+  cCustos=new Chart(ctx,{type:'doughnut',data:{
+    labels:['Custo de Ingredientes','Custos Fixos + Equipe','Lucro'],
+    datasets:[{data:[cmv,desp,lucro],backgroundColor:['#BF6A2E','#C0392B','#2C6E49'],borderWidth:0,hoverOffset:4}]
+  },options:{responsive:true,cutout:'65%',
+    plugins:{legend:{position:'bottom',labels:{font:{family:'DM Sans',size:11},boxWidth:10,padding:10}},
+      tooltip:{callbacks:{label:ctx=>`R$ ${ctx.parsed.toLocaleString('pt-BR',{minimumFractionDigits:2})}`}}}}});
+}
+
+// ═══ INGREDIENTES ════════════════════════════════════════
+function renderIngredientes(){
+  const q=S.filtroIngr.toLowerCase();
+  const lista=S.ingredientes.filter(i=>i.nome.toLowerCase().includes(q));
+  const tbody=document.getElementById('tb-ingredientes');
+  tbody.innerHTML=lista.length===0
+    ?'<tr><td colspan="6"><div class="empty"><div class="empty-icon">🌿</div><div class="empty-title">Nenhum ingrediente encontrado</div><div class="empty-sub">Tente outro termo ou adicione um novo ingrediente</div></div></td></tr>'
+    :lista.map(i=>{
+      const diff=i.precoAnt?((i.preco-i.precoAnt)/i.precoAnt*100):0;
+      const histHtml=i.precoAnt?`<span class="hist-chip ${diff>0?'up':diff<0?'down':''}">${diff>0?'↑':'↓'} ${Math.abs(diff).toFixed(1)}%</span>`:'—';
+      const antHtml=i.precoAnt?`<span class="td-mono muted">${fmt(i.precoAnt)}</span>`:'<span class="muted">—</span>';
+      return `<tr>
+        <td style="font-weight:500">${i.nome}</td>
+        <td><span class="badge badge-neutral">${i.unid}</span></td>
+        <td class="text-right td-mono">${fmt(i.preco)}</td>
+        <td class="text-right">${antHtml}</td>
+        <td class="text-right">${histHtml}</td>
+        <td class="text-right" style="display:flex;gap:6px;justify-content:flex-end">
+          <button class="btn btn-ghost btn-xs" onclick="editIngr(${i.id})">Atualizar preço</button>
+          <button class="btn btn-danger btn-xs" onclick="delIngr(${i.id})">×</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+  // Indiretos
+  const proj=S.cfg.projecao||90000;
+  const tbody2=document.getElementById('tb-indir');
+  let total=0,totalUn=0;
+  tbody2.innerHTML=S.indiretos.map(i=>{
+    const sub=(i.preco||0)*(i.qtdeMes||0);
+    const porUn=proj>0?sub/proj:0;
+    total+=sub;totalUn+=porUn;
+    return `<tr>
+      <td style="font-weight:500">${i.nome}</td>
+      <td><span class="badge badge-neutral">${i.unid}</span></td>
+      <td class="text-right td-mono">${fmt(i.preco)}</td>
+      <td class="text-right"><input type="number" value="${i.qtdeMes||''}" placeholder="—"
+        style="width:80px;text-align:right;padding:4px 8px;font-size:12px"
+        oninput="updateIndir(${i.id},this.value)"></td>
+      <td class="text-right td-mono">${i.qtdeMes?fmt(sub):'<span class="muted">—</span>'}</td>
+      <td class="text-right td-mono muted" style="font-size:11.5px">${i.qtdeMes?fmt(porUn)+'/venda':'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('total-indir').textContent=total>0?fmt(total):'R$ —';
+  document.getElementById('total-indir-un').textContent=totalUn>0?fmt(totalUn)+'/venda':'—';
+}
+function filtrarIngredientes(){S.filtroIngr=document.getElementById('busca-ingr').value;renderIngredientes();}
+function addIngrediente(){
+  const nome=document.getElementById('ingr-nome').value.trim();
+  const unid=document.getElementById('ingr-unid').value;
+  const preco=parseFloat(document.getElementById('ingr-preco').value);
+  if(!nome){document.getElementById('ingr-nome').classList.add('error');toast('Digite o nome do ingrediente','error');return;}
+  if(isNaN(preco)||preco<0){document.getElementById('ingr-preco').classList.add('error');toast('Digite um preço válido','error');return;}
+  document.getElementById('ingr-nome').classList.remove('error');
+  document.getElementById('ingr-preco').classList.remove('error');
+  S.ingredientes.push({id:IDs.ingr++,nome,unid,preco,precoAnt:null});
+  document.getElementById('ingr-nome').value='';document.getElementById('ingr-preco').value='';
+  renderIngredientes();toast('Ingrediente adicionado ✓');
+}
+function editIngr(id){
+  const i=S.ingredientes.find(x=>x.id===id);if(!i)return;
+  const nv=prompt(`Novo preço para "${i.nome}" por ${i.unid} (R$):\n\nPreço atual: R$ ${fmtN(i.preco)}`,i.preco);
+  if(nv===null)return;
+  const p=parseFloat(nv.replace(',','.'));
+  if(!isNaN(p)&&p>=0){i.precoAnt=i.preco;i.preco=p;renderIngredientes();toast('Preço atualizado — histórico salvo ✓');}
+  else toast('Valor inválido','error');
+}
+function delIngr(id){
+  if(!confirm('Remover este ingrediente? Produtos que usam ele podem ter custo zerado.'))return;
+  S.ingredientes=S.ingredientes.filter(i=>i.id!==id);renderIngredientes();toast('Ingrediente removido');
+}
+function updateIndir(id,val){
+  const i=S.indiretos.find(x=>x.id===id);
+  if(i){i.qtdeMes=parseFloat(val)||null;renderIngredientes();}
+}
+function addIndir(){
+  const nome=prompt('Nome do item (ex: Caixa de pizza, Guardanapo):');if(!nome)return;
+  const preco=parseFloat(prompt('Preço por unidade (R$):')?.replace(',','.'));
+  if(isNaN(preco))return;
+  S.indiretos.push({id:IDs.indir++,nome,unid:'unidade',preco,qtdeMes:null});
+  renderIngredientes();toast('Item adicionado ✓');
+}
+
+// ═══ PREPARAÇÕES ═════════════════════════════════════════
+function renderPreparacoes(){
+  const grid=document.getElementById('grid-preps');
+  grid.innerHTML=S.preparacoes.map(p=>{
+    const custo=calcCustoPrep(p);
+    const ingrsHtml=p.ingrs.map(r=>{
+      const nome=r.nome||getIngr(r.ingrId)?.nome||'?';
+      const qtd=r.qtd2||r.qtd;
+      const pr=r.preco?r.preco:(getIngr(r.ingrId)?.preco||0);
+      const c=pr*qtd;
+      return `<div class="prep-ingr-row"><span>${nome}</span><span style="font-size:10.5px;color:var(--text-3)">${qtd} ${r.nome?'kg':getIngr(r.ingrId)?.unid||''}</span><span style="font-weight:500;font-variant-numeric:tabular-nums">${fmt(c)}</span></div>`;
+    }).join('');
+    return `<div class="prep-card">
+      <div class="prep-header">
+        <div>
+          <div class="prep-name">${p.nome}</div>
+          <div style="font-size:10.5px;color:#6B7FD7">Rendimento: ${p.rendimento}</div>
+        </div>
+        <span class="badge badge-blue">Preparação</span>
+      </div>
+      <div class="prep-body">${ingrsHtml}</div>
+      <div class="prep-footer">
+        <span style="font-size:11px;color:var(--text-3)">Custo desta preparação:</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--text)">${fmt(custo)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══ PRODUTOS ════════════════════════════════════════════
+function filtrarProdutos(filtro,el){
+  S.filtroProduto=filtro;
+  document.querySelectorAll('#tabs-produtos .pill-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');renderProdutos();
+}
+function renderProdutos(){
+  recalcMarkup();
+  const mk=getMarkup();
+  document.getElementById('markup-display').textContent=(mk*100).toFixed(1)+'%';
+  const lista=S.filtroProduto==='todos'?S.produtos:S.produtos.filter(p=>p.filtro===S.filtroProduto);
+  const grid=document.getElementById('grid-produtos');
+  grid.innerHTML=lista.map(p=>{
+    const ingrsHtml=p.ingrs.map(r=>{
+      const i=getIngr(r.ingrId);if(!i)return'';
+      const c=i.preco*r.qtd;
+      return `<div class="ingr-row"><span class="ingr-name">${i.nome}</span><span class="ingr-qtd">${r.qtd} ${i.unid}</span><span class="ingr-custo">${fmt(c)}</span></div>`;
+    }).join('');
+    const cd=calcCustoDirecto(p);
+    const ps=mk>0?cd/mk:0;
+    const diff=p.precoAtual-ps;
+    const margemAtual=p.precoAtual>0?((p.precoAtual-cd)/p.precoAtual*100):0;
+    const bm=getMargemBenchmark(margemAtual);
+    const aviso=ps>0&&Math.abs(diff/ps)>0.15?`<div class="alert ${diff<0?'alert-warn':'alert-info'}" style="margin-top:8px;padding:8px 10px">
+      <span style="font-size:12px">${diff<0?'⚠️':'ℹ️'}</span>
+      <span style="font-size:11px">${diff<0?'Preço abaixo do sugerido. Risco de prejuízo.':'Preço acima do sugerido. Boa margem.'}</span>
+    </div>`:'';
+    return `<div class="produto-card">
+      <div class="produto-card-header">
+        <div class="produto-name">${p.nome}</div>
+        <div class="produto-tamanho">${p.tamanho}</div>
+      </div>
+      <div class="produto-body">
+        ${ingrsHtml}
+        <div style="padding:7px 0 0;display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:4px;border-top:1px dashed var(--border)">
+          <span style="color:var(--text-2)">Custo dos ingredientes:</span><span>${fmt(cd)}</span>
+        </div>
+        ${aviso}
+      </div>
+      <div class="produto-footer">
+        <div class="pf-grid">
+          <div><div class="pf-label">Preço Sugerido</div><div class="pf-value accent">${fmt(ps)}</div></div>
+          <div><div class="pf-label">Preço Praticado</div>
+            <input type="number" value="${p.precoAtual}" step="1" min="0"
+              style="width:100%;padding:3px 6px;font-size:14px;font-weight:600;margin-top:3px;border-radius:6px"
+              oninput="updatePreco(${p.id},this.value)">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
+          <span class="badge ${bm.cls}">${bm.txt}</span>
+          <span style="font-size:11px;color:var(--text-3)">Margem: <strong style="color:${margemAtual>=12?'var(--green)':margemAtual>=5?'var(--yellow)':'var(--red)'}">${margemAtual.toFixed(1)}%</strong></span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function updatePreco(id,val){
+  const p=S.produtos.find(x=>x.id===id);
+  if(p){p.precoAtual=parseFloat(val)||0;renderProdutos();}
+}
+
+// ═══ VENDA DIRETA ════════════════════════════════════════
+function renderVendaDireta(){
+  const mkBeb=parseFloat(document.getElementById('markup-bebidas').value||40)/100;
+  const tbody=document.getElementById('tb-vd');
+  let totalLucro=0;
+  tbody.innerHTML=S.vendaDireta.map(v=>{
+    const ps=mkBeb>0?v.custo/mkBeb:0;
+    const lucroUn=v.precoAtual-v.custo;
+    const lucroMes=lucroUn*(v.previsaoMes||0);
+    totalLucro+=lucroMes;
+    const ok=lucroUn>0;
+    return `<tr>
+      <td style="font-weight:500">${v.nome}</td>
+      <td><span class="badge badge-blue">${v.categoria}</span></td>
+      <td class="text-right td-mono">${fmt(v.custo)}</td>
+      <td class="text-right td-mono" style="color:var(--accent)">${fmt(ps)}</td>
+      <td class="text-right"><input type="number" value="${v.precoAtual}" step="0.5" min="0"
+        style="width:70px;text-align:right;padding:4px 6px;font-size:12px;font-weight:600"
+        oninput="updateVD(${v.id},'preco',this.value)"></td>
+      <td class="text-right td-mono" style="font-weight:600;color:${ok?'var(--green)':'var(--red)'}">${fmtSigned(lucroUn)}</td>
+      <td class="text-right"><input type="number" value="${v.previsaoMes||''}" placeholder="—"
+        style="width:70px;text-align:right;padding:4px 6px;font-size:12px"
+        oninput="updateVD(${v.id},'prev',this.value)"></td>
+      <td class="text-right td-mono" style="font-weight:600;color:${lucroMes>=0?'var(--green)':'var(--red)'}">${v.previsaoMes?fmt(lucroMes):'—'}</td>
+      <td><button class="btn btn-danger btn-xs" onclick="delVD(${v.id})">×</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('total-vd-lucro').textContent=totalLucro>0?fmt(totalLucro):'—';
+}
+function updateVD(id,campo,val){
+  const v=S.vendaDireta.find(x=>x.id===id);
+  if(!v)return;
+  if(campo==='preco')v.precoAtual=parseFloat(val)||0;
+  else v.previsaoMes=parseInt(val)||0;
+  renderVendaDireta();
+}
+function delVD(id){S.vendaDireta=S.vendaDireta.filter(v=>v.id!==id);renderVendaDireta();toast('Produto removido');}
+function addVendaDireta(){
+  const nome=prompt('Nome do produto:');if(!nome)return;
+  const cat=prompt('Categoria (Refrigerante/Cerveja/Água/Vinho/Outro):','Refrigerante');if(!cat)return;
+  const custo=parseFloat(prompt('Custo de compra (R$):')?.replace(',','.'));
+  if(isNaN(custo))return;
+  const preco=parseFloat(prompt('Preço de venda praticado (R$):')?.replace(',','.'));
+  if(isNaN(preco))return;
+  S.vendaDireta.push({id:IDs.vd++,nome,categoria:cat,custo,precoAtual:preco,previsaoMes:0});
+  renderVendaDireta();toast('Produto adicionado ✓');
+}
+
+// ═══ DESPESAS ════════════════════════════════════════════
+function recalcMarkup(){
+  const imp=parseFloat(document.getElementById('cfg-regime')?.value||0.06);
+  const luc=parseFloat(document.getElementById('cfg-lucro')?.value||10)/100;
+  const mk=1-imp-luc;
+  S.markup=mk*100;
+  const el=document.getElementById('markup-global-val');
+  if(!el){
+    const d=document.createElement('span');
+    d.id='markup-global-val';d.dataset.val=mk*100;d.style.display='none';
+    document.body.appendChild(d);
+  } else {el.dataset.val=mk*100;}
+  const mkEl=document.getElementById('markup-calc');
+  if(mkEl)mkEl.textContent=(mk*100).toFixed(2)+'%';
+  return mk;
+}
+function recalcTudo(){
+  S.cfg.projecao=parseFloat(document.getElementById('cfg-projecao')?.value||90000);
+  S.cfg.imposto=parseFloat(document.getElementById('cfg-regime')?.value||0.06);
+  S.cfg.lucro=parseFloat(document.getElementById('cfg-lucro')?.value||10)/100;
+  recalcMarkup();
+  renderDespesas();
+}
+function renderDespesas(){
+  recalcMarkup();
+  const proj=parseFloat(document.getElementById('cfg-projecao')?.value||90000);
+  const imp=parseFloat(document.getElementById('cfg-regime')?.value||0.06);
+  const luc=parseFloat(document.getElementById('cfg-lucro')?.value||10)/100;
+  const mk=1-imp-luc;
+  document.getElementById('markup-calc').textContent=(mk*100).toFixed(2)+'%';
+
+  const tbody=document.getElementById('tb-desp');
+  let totalVal=0,totalRat=0;
+  tbody.innerHTML=S.despesas.map(d=>{
+    const rat=proj>0?d.valor/proj:0;totalVal+=d.valor;totalRat+=rat;
+    return `<tr>
+      <td>${d.desc}</td>
+      <td class="text-right td-mono">${fmt(d.valor)}</td>
+      <td class="text-right td-mono muted" style="font-size:11.5px">R$ ${fmtN(rat)} a cada R$1</td>
+      <td><button class="btn btn-danger btn-xs" onclick="delDesp(${d.id})">×</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('total-desp-val').textContent=fmt(totalVal);
+  document.getElementById('total-desp-rat').textContent='R$ '+fmtN(totalRat);
+
+  // ProLabore
+  const tbody3=document.getElementById('tb-prolabore');
+  let tpl=0;
+  tbody3.innerHTML=S.prolabore.map(p=>{
+    tpl+=p.valor;
+    return `<tr>
+      <td style="font-weight:500">${p.nome}</td>
+      <td class="text-right td-mono">${fmt(p.valor)}</td>
+      <td><button class="btn btn-danger btn-xs" onclick="delProlabore(${p.id})">×</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('total-pl').textContent=fmt(tpl);
+
+  // Salários
+  const tbody2=document.getElementById('tb-salarios');
+  let ts=0,tse=0;
+  tbody2.innerHTML=S.salarios.map(s=>{
+    const enc=s.salario*1.18;ts+=s.salario;tse+=enc;
+    return `<tr>
+      <td>${s.func}</td>
+      <td class="text-right td-mono">${fmt(s.salario)}</td>
+      <td class="text-right td-mono" style="font-weight:600;color:var(--accent)">${fmt(enc)}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('total-sal').textContent=fmt(ts);
+  document.getElementById('total-sal-enc').textContent=fmt(tse);
+
+  // Breakdown
+  const cmvEst=proj*0.30;
+  const totalFixosCal=totalVal+tse+tpl;
+  const lucroEst=proj-(cmvEst+totalFixosCal);
+  const impEst=proj*imp;
+  const breakdown=document.getElementById('cost-breakdown');
+  const items=[
+    {label:'Insumos (estimado 30%)',val:cmvEst/proj,color:'#BF6A2E'},
+    {label:'Impostos',val:imp,color:'#9333EA'},
+    {label:'Custos Fixos + Equipe',val:proj>0?totalFixosCal/proj:0,color:'#C0392B'},
+    {label:'Lucro estimado',val:proj>0?Math.max(0,lucroEst)/proj:0,color:'#2C6E49'},
+  ];
+  breakdown.innerHTML=items.map(it=>`<div class="progress-wrap">
+    <div class="progress-label"><span>${it.label}</span><span>${(it.val*100).toFixed(1)}%</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(it.val*100,100)}%;background:${it.color}"></div></div>
+  </div>`).join('');
+}
+function addDespesa(){
+  const desc=prompt('Descrição da despesa (ex: Aluguel, Energia):');if(!desc)return;
+  const val=parseFloat(prompt('Valor mensal em R$:')?.replace(',','.'));
+  if(isNaN(val)||val<0){toast('Valor inválido','error');return;}
+  S.despesas.push({id:IDs.desp++,desc,valor:val});
+  renderDespesas();toast('Despesa adicionada ✓');
+}
+function delDesp(id){S.despesas=S.despesas.filter(d=>d.id!==id);renderDespesas();toast('Despesa removida');}
+function addProlabore(){
+  const nome=document.getElementById('pl-nome').value.trim();
+  const val=parseFloat(document.getElementById('pl-valor').value);
+  if(!nome){toast('Digite o nome do sócio','error');return;}
+  if(isNaN(val)||val<0){toast('Digite um valor válido','error');return;}
+  S.prolabore.push({id:IDs.pl++,nome,valor:val});
+  document.getElementById('pl-nome').value='';document.getElementById('pl-valor').value='';
+  renderDespesas();toast('Pró-labore adicionado ✓');
+}
+function delProlabore(id){S.prolabore=S.prolabore.filter(p=>p.id!==id);renderDespesas();toast('Removido');}
+
+// ═══ CAIXA ═══════════════════════════════════════════════
+let cCaixa=null;
+const CONTA_CORES={'Caixa':'#2C6E49','Pix':'#0284C7','Crédito':'#9333EA','Débito':'#E6A817','Sicoob PJ':'#BF6A2E','Santander':'#C0392B'};
+const TIPO_LABEL={FL:'Venda',MP:'Ingrediente',FX:'Fixo',VA:'Variável',TX:'Taxa',OP:'Operacional'};
+function renderCaixa(){
+  const lc=S.filtroCaixa==='todos'?[...S.lancamentos]:S.lancamentos.filter(l=>l.tipo===S.filtroCaixa);
+  lc.sort((a,b)=>a.data.localeCompare(b.data));
+  let saldoAcum=0;
+  const tbody=document.getElementById('tb-caixa');
+  tbody.innerHTML=lc.map(l=>{
+    saldoAcum+=l.valor;
+    const pos=l.valor>=0;
+    return `<tr>
+      <td><div class="tipo-badge tipo-${l.tipo}">${l.tipo}</div></td>
+      <td style="color:var(--text-3);font-size:11.5px;white-space:nowrap">${l.data.split('-').reverse().join('/')}</td>
+      <td style="font-weight:500">${l.desc}</td>
+      <td><span class="badge badge-neutral" style="font-size:10px">${l.conta}</span></td>
+      <td class="text-right td-mono" style="color:${pos?'var(--green)':'var(--red)'};font-weight:600">${pos?'+':''}${fmtN(l.valor)}</td>
+      <td class="text-right td-mono" style="color:${saldoAcum>=0?'var(--text)':'var(--red)'}">${fmtN(saldoAcum)}</td>
+      <td><button class="btn btn-danger btn-xs" onclick="delLancamento(${l.id})">×</button></td>
+    </tr>`;
+  }).join('');
+
+  const saldoTotal=S.lancamentos.reduce((s,l)=>s+l.valor,0);
+  const saldoEl=document.getElementById('saldo-total');
+  saldoEl.textContent=fmt(Math.abs(saldoTotal));
+  saldoEl.className='saldo-value '+(saldoTotal>=0?'pos':'neg');
+
+  const contas={};
+  S.lancamentos.forEach(l=>{contas[l.conta]=(contas[l.conta]||0)+l.valor;});
+  document.getElementById('resumo-contas').innerHTML=Object.entries(contas).map(([c,v])=>
+    `<div class="resumo-conta">
+      <span style="display:flex;align-items:center;gap:7px">
+        <span class="conta-dot" style="background:${CONTA_CORES[c]||'#888'}"></span>
+        <span>${c}</span>
+      </span>
+      <span style="font-weight:600;color:${v>=0?'var(--green)':'var(--red)'}">${fmt(v)}</span>
+    </div>`).join('');
+
+  const tipos={FL:0,MP:0,FX:0,VA:0,TX:0,OP:0};
+  S.lancamentos.forEach(l=>{if(tipos[l.tipo]!==undefined)tipos[l.tipo]+=l.valor;});
+  document.getElementById('resumo-tipos').innerHTML=Object.entries(tipos)
+    .filter(([,v])=>v!==0)
+    .map(([t,v])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--border)">
+      <span style="display:flex;align-items:center;gap:7px">
+        <span class="tipo-badge tipo-${t}" style="width:22px;height:22px;font-size:8.5px">${t}</span>
+        <span style="color:var(--text-2)">${TIPO_LABEL[t]}</span>
+      </span>
+      <span style="font-weight:600;color:${v>=0?'var(--green)':'var(--red)'}">${fmt(v)}</span>
+    </div>`).join('');
+
+  const ctx=document.getElementById('chartCaixa').getContext('2d');
+  if(cCaixa)cCaixa.destroy();
+  const allE=Object.entries(tipos).filter(([,v])=>v!==0);
+  cCaixa=new Chart(ctx,{type:'bar',data:{
+    labels:allE.map(([t])=>TIPO_LABEL[t]),
+    datasets:[{data:allE.map(([,v])=>Math.abs(v)),
+      backgroundColor:allE.map(([,v])=>v>=0?'rgba(44,110,73,.75)':'rgba(192,57,43,.65)'),
+      borderRadius:3,borderWidth:0}]
+  },options:{responsive:true,indexAxis:'y',
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{family:'DM Sans',size:10},callback:v=>'R$'+v.toFixed(0)}},
+      y:{grid:{display:false},ticks:{font:{family:'DM Sans',size:10}}}}}});
+}
+function addLancamento(){
+  const data=document.getElementById('cx-data').value;
+  const tipo=document.getElementById('cx-tipo').value;
+  const desc=document.getElementById('cx-desc').value.trim();
+  const val=parseFloat(document.getElementById('cx-valor').value);
+  const conta=document.getElementById('cx-conta').value;
+  if(!data){toast('Selecione a data','error');return;}
+  if(!desc){document.getElementById('cx-desc').classList.add('error');toast('Descreva a movimentação','error');return;}
+  if(isNaN(val)||val<=0){document.getElementById('cx-valor').classList.add('error');toast('Digite um valor maior que zero','error');return;}
+  document.getElementById('cx-desc').classList.remove('error');
+  document.getElementById('cx-valor').classList.remove('error');
+  const valorFinal=tipo==='FL'?Math.abs(val):-Math.abs(val);
+  S.lancamentos.push({id:IDs.cx++,data,tipo,desc,valor:valorFinal,conta});
+  document.getElementById('cx-desc').value='';document.getElementById('cx-valor').value='';
+  renderCaixa();toast('Lançamento registrado ✓');
+}
+function delLancamento(id){
+  S.lancamentos=S.lancamentos.filter(l=>l.id!==id);renderCaixa();toast('Lançamento removido');
+}
+function filtrarCaixa(filtro,el){
+  S.filtroCaixa=filtro;
+  document.querySelectorAll('#sec-caixa .btn-ghost.btn-xs').forEach(b=>b.style.background='');
+  if(el)el.style.background='var(--surface-3)';
+  renderCaixa();
+}
+
+// ═══ INTEGRAÇÃO CARDÁPIO WEB ══════════════════════════════
+const CW = {
+  token: null,
+  lojaId: null,
+  connected: false,
+  syncLog: [],
+  catalogoImportado: [],
+};
+
+// Dados simulados — representam o que a API real retornaria
+const CW_MOCK = {
+  loja: {
+    nome: "D'Luigi Pizzaria",
+    cnpj: "12.345.678/0001-90",
+    status: "aberto",
+    formasPagamento: ["Dinheiro","Pix","Crédito","Débito"],
+    horarios: "Seg-Dom 18h–23h",
+  },
+  catalogo: [
+    {id:'cw-001',nome:'Pizza Americana Família',categoria:'Pizzas',preco:107,status:'ativo'},
+    {id:'cw-002',nome:'Pizza Americana Grande',categoria:'Pizzas',preco:65,status:'ativo'},
+    {id:'cw-003',nome:'Pizza Americana Broto',categoria:'Pizzas',preco:33,status:'ativo'},
+    {id:'cw-004',nome:'Pizza À Moda da Casa Família',categoria:'Pizzas',preco:112,status:'ativo'},
+    {id:'cw-005',nome:'Pizza À Moda da Casa Grande',categoria:'Pizzas',preco:70,status:'ativo'},
+    {id:'cw-006',nome:'Pizza À Moda da Casa Broto',categoria:'Pizzas',preco:36,status:'ativo'},
+    {id:'cw-007',nome:'Pizza Especial do Pizzaiolo Família',categoria:'Pizzas',preco:120,status:'ativo'},
+    {id:'cw-008',nome:'Pizza Especial do Pizzaiolo Grande',categoria:'Pizzas',preco:75,status:'ativo'},
+    {id:'cw-009',nome:'Coca-Cola 350ml',categoria:'Bebidas',preco:5,status:'ativo'},
+    {id:'cw-010',nome:'Guaraná Antarctica 350ml',categoria:'Bebidas',preco:5,status:'ativo'},
+    {id:'cw-011',nome:'Brahma Chopp 350ml',categoria:'Bebidas',preco:5,status:'ativo'},
+    {id:'cw-012',nome:'Água Mineral 510ml',categoria:'Bebidas',preco:2.5,status:'ativo'},
+    {id:'cw-013',nome:'Porção de Batata Frita',categoria:'Porções',preco:38,status:'ativo'},
+    {id:'cw-014',nome:'Strogonoff de Frango',categoria:'Porções',preco:52,status:'ativo'},
+    {id:'cw-015',nome:'Pizza Margherita Família',categoria:'Pizzas',preco:95,status:'inativo'},
+  ],
+  // Pedidos simulados para o período (agrupados por dia e forma pagamento)
+  pedidos: (periodo) => {
+    const [ano, mes] = periodo.split('-');
+    const diasNoMes = new Date(ano, mes, 0).getDate();
+    const result = [];
+    let idBase = 5000;
+    const formas = [
+      {conta:'Caixa',label:'Dinheiro',peso:0.15},
+      {conta:'Pix',label:'Pix',peso:0.35},
+      {conta:'Crédito',label:'Cartão Crédito',peso:0.30},
+      {conta:'Débito',label:'Cartão Débito',peso:0.20},
+    ];
+    for(let d=1;d<=diasNoMes;d++){
+      // Simula mais movimento nos fins de semana
+      const date = new Date(ano, mes-1, d);
+      const dow = date.getDay(); // 0=dom, 6=sab
+      const fimDeSemana = dow===0||dow===5||dow===6;
+      const baseVenda = fimDeSemana ? 3200 : 1400;
+      const variacao = 0.7 + Math.random()*0.6;
+      const totalDia = baseVenda * variacao;
+      const numPedidos = Math.round((fimDeSemana?28:12)*variacao);
+      formas.forEach(f=>{
+        const valor = totalDia * f.peso;
+        result.push({
+          id: idBase++,
+          data: `${ano}-${mes.padStart(2,'0')}-${String(d).padStart(2,'0')}`,
+          tipo: 'FL',
+          desc: `[CW] Vendas ${f.label}`,
+          valor: Math.round(valor*100)/100,
+          conta: f.conta,
+          numPedidos: Math.round(numPedidos*f.peso),
+          fonte: 'cardapio_web',
+        });
+      });
+    }
+    return result;
+  },
+  // Volume de vendas por produto no período
+  volumeProdutos: [
+    {cwId:'cw-001',qtd:42,faturamento:4494},
+    {cwId:'cw-002',qtd:89,faturamento:5785},
+    {cwId:'cw-003',qtd:134,faturamento:4422},
+    {cwId:'cw-004',qtd:38,faturamento:4256},
+    {cwId:'cw-005',qtd:74,faturamento:5180},
+    {cwId:'cw-006',qtd:98,faturamento:3528},
+    {cwId:'cw-007',qtd:22,faturamento:2640},
+    {cwId:'cw-008',qtd:45,faturamento:3375},
+    {cwId:'cw-009',qtd:280,faturamento:1400},
+    {cwId:'cw-010',qtd:210,faturamento:1050},
+    {cwId:'cw-011',qtd:156,faturamento:780},
+    {cwId:'cw-012',qtd:390,faturamento:975},
+    {cwId:'cw-013',qtd:67,faturamento:2546},
+    {cwId:'cw-014',qtd:34,faturamento:1768},
+  ],
+};
+
+function integTab(id, el){
+  document.querySelectorAll('.integ-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.integ-panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ip-'+id).classList.add('active');
+}
+
+function renderIntegracao(){
+  updateConnBadge();
+  // Set current month as default period
+  const now = new Date();
+  const ped = document.getElementById('ped-periodo');
+  if(ped && !ped.value){
+    ped.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  }
+}
+
+function updateConnBadge(){
+  const badge = document.getElementById('sidebar-badge');
+  const connBadge = document.getElementById('conn-status-badge');
+  if(!badge||!connBadge) return;
+  if(CW.connected){
+    badge.textContent='✓ On';badge.className='sidebar-conn-badge on';
+    connBadge.innerHTML='<span class="conn-dot"></span> Conectado';
+    connBadge.className='conn-status connected';
+  } else {
+    badge.textContent='✗ Off';badge.className='sidebar-conn-badge off';
+    connBadge.innerHTML='<span class="conn-dot"></span> Não conectado';
+    connBadge.className='conn-status disconnected';
+  }
+}
+
+function testarConexao(){
+  const token = document.getElementById('cw-token').value.trim();
+  const lojaId = document.getElementById('cw-loja-id').value.trim();
+  if(!token){document.getElementById('cw-token').classList.add('error');toast('Cole o token de API','error');return;}
+  if(!lojaId){document.getElementById('cw-loja-id').classList.add('error');toast('Informe o ID da loja','error');return;}
+  document.getElementById('cw-token').classList.remove('error');
+  document.getElementById('cw-loja-id').classList.remove('error');
+
+  const connBadge = document.getElementById('conn-status-badge');
+  connBadge.innerHTML='<span class="conn-dot"></span> Testando…';
+  connBadge.className='conn-status testing';
+  document.getElementById('conn-loading').style.display='block';
+  document.getElementById('conn-result').style.display='none';
+  document.getElementById('btn-salvar-token').style.display='none';
+
+  // Simula latência de API real
+  setTimeout(()=>{
+    document.getElementById('conn-loading').style.display='none';
+    const result = document.getElementById('conn-result');
+    result.style.display='block';
+    // Simula resposta da API com dados da loja
+    const loja = CW_MOCK.loja;
+    result.innerHTML=`<div class="alert alert-ok">
+      <span class="alert-icon">✓</span>
+      <div>
+        <div class="alert-title">Conexão estabelecida com sucesso</div>
+        <div style="margin-top:6px;font-size:12px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px">
+          <span style="color:var(--text-3)">Estabelecimento:</span><strong>${loja.nome}</strong>
+          <span style="color:var(--text-3)">Status:</span><span class="badge badge-green">${loja.status}</span>
+          <span style="color:var(--text-3)">Horários:</span><span>${loja.horarios}</span>
+          <span style="color:var(--text-3)">Pagamentos:</span><span>${loja.formasPagamento.join(', ')}</span>
+        </div>
+      </div>
+    </div>`;
+    CW.token = token;
+    CW.lojaId = lojaId;
+    document.getElementById('btn-salvar-token').style.display='flex';
+    connBadge.innerHTML='<span class="conn-dot"></span> Pronto para salvar';
+    connBadge.className='conn-status testing';
+    addLog('conexao','✅','Teste de conexão bem-sucedido',`Loja: ${loja.nome}`);
+  }, 1800);
+}
+
+function salvarToken(){
+  CW.connected=true;
+  updateConnBadge();
+  document.getElementById('btn-salvar-token').style.display='none';
+  toast('Integração ativada ✓ Token salvo neste navegador');
+  addLog('token','🔐','Token salvo e integração ativada','Dados ficam apenas neste navegador');
+}
+
+function importarCatalogo(){
+  if(!CW.connected){toast('Configure e salve o token primeiro','error');integTab('conexao',document.querySelectorAll('.integ-tab')[0]);return;}
+  document.getElementById('catalogo-loading').style.display='block';
+  document.getElementById('catalogo-content').innerHTML='';
+
+  setTimeout(()=>{
+    document.getElementById('catalogo-loading').style.display='none';
+    const cat = CW_MOCK.catalogo;
+    CW.catalogoImportado = cat;
+    document.getElementById('cat-last-sync').textContent=new Date().toLocaleString('pt-BR');
+
+    // Cruzar com produtos existentes no sistema
+    const nomesComFicha = S.produtos.map(p=>(p.nome+' '+p.tamanho).toLowerCase());
+    const semFicha = cat.filter(c=>c.status==='ativo' && !nomesComFicha.some(n=>c.nome.toLowerCase().includes(n.split(' ')[0].toLowerCase())));
+
+    const rows = cat.map(c=>{
+      const temFicha = nomesComFicha.some(n=>c.nome.toLowerCase().includes(n.split(' ')[0].toLowerCase()));
+      const dotColor = c.status==='inativo'?'var(--text-3)':temFicha?'var(--green)':'var(--yellow)';
+      const statusBadge = c.status==='inativo'?'<span class="badge badge-neutral">Inativo</span>':
+        temFicha?'<span class="badge badge-green">Com ficha de custo</span>':
+        '<span class="badge badge-yellow">⚠ Sem ficha</span>';
+      return `<div class="catálogo-row">
+        <span style="display:flex;align-items:center;gap:10px">
+          <span class="status-dot" style="background:${dotColor}"></span>
+          <span style="font-weight:500">${c.nome}</span>
+        </span>
+        <span style="display:flex;align-items:center;gap:14px">
+          <span class="badge badge-neutral">${c.categoria}</span>
+          <span style="font-variant-numeric:tabular-nums;font-weight:600;min-width:60px;text-align:right">${fmt(c.preco)}</span>
+          ${statusBadge}
+        </span>
+      </div>`;
+    }).join('');
+
+    document.getElementById('catalogo-content').innerHTML=`<div>${rows}</div>`;
+
+    // Atualiza preços dos produtos existentes com os preços do cardápio
+    let atualizados=0;
+    cat.forEach(c=>{
+      S.produtos.forEach(p=>{
+        if(c.nome.toLowerCase().includes(p.nome.toLowerCase()) && c.nome.toLowerCase().includes(p.tamanho.toLowerCase())){
+          if(p.precoAtual!==c.preco){p.precoAtual=c.preco;atualizados++;}
+        }
+      });
+    });
+
+    addLog('catalogo','📋','Catálogo importado',`${cat.length} produtos · ${cat.filter(c=>c.status==='ativo').length} ativos · ${semFicha.length} sem ficha`);
+
+    if(semFicha.length>0){
+      document.getElementById('sem-ficha-alert')?.remove();
+      const alertEl=document.createElement('div');
+      alertEl.id='sem-ficha-alert';
+      alertEl.className='alert alert-warn';
+      alertEl.style.marginTop='16px';
+      alertEl.innerHTML=`<span class="alert-icon">⚠️</span>
+        <div><div class="alert-title">${semFicha.length} produto(s) sem ficha de custo</div>
+        <div style="font-size:12px;margin-top:4px">${semFicha.map(s=>s.nome).join(', ')} — sem ficha cadastrada, o sistema não consegue calcular a margem desses itens.</div></div>`;
+      document.getElementById('ip-catalogo').appendChild(alertEl);
+    }
+    toast(`${cat.length} produtos importados${atualizados>0?' · '+atualizados+' preços atualizados':''} ✓`);
+  }, 2000);
+}
+
+function importarPedidos(){
+  if(!CW.connected){toast('Configure e salve o token primeiro','error');integTab('conexao',document.querySelectorAll('.integ-tab')[0]);return;}
+  const periodo = document.getElementById('ped-periodo').value;
+  if(!periodo){toast('Selecione o período','error');return;}
+
+  document.getElementById('pedidos-loading').style.display='block';
+  document.getElementById('pedidos-content').innerHTML='';
+  document.getElementById('pedidos-kpis').style.display='none';
+
+  setTimeout(()=>{
+    document.getElementById('pedidos-loading').style.display='none';
+    const pedidos = CW_MOCK.pedidos(periodo);
+
+    // KPIs
+    const totalFat = pedidos.reduce((s,p)=>s+p.valor,0);
+    const totalPed = pedidos.reduce((s,p)=>s+(p.numPedidos||0),0);
+    const ticket = totalPed>0?totalFat/totalPed:0;
+    document.getElementById('pk-total').textContent=totalPed.toLocaleString('pt-BR');
+    document.getElementById('pk-fat').textContent=fmt(totalFat);
+    document.getElementById('pk-ticket').textContent=fmt(ticket);
+    document.getElementById('pedidos-kpis').style.display='block';
+
+    // Volume por produto
+    const volHtml = CW_MOCK.volumeProdutos.map(v=>{
+      const cat = CW.catalogoImportado.find(c=>c.id===v.cwId);
+      const nome = cat?cat.nome:'Produto #'+v.cwId;
+      const pct = totalFat>0?(v.faturamento/totalFat*100):0;
+      return `<tr>
+        <td style="font-weight:500">${nome}</td>
+        <td class="text-right td-mono">${v.qtd}</td>
+        <td class="text-right td-mono">${fmt(v.faturamento)}</td>
+        <td class="text-right">
+          <div class="progress-bar" style="width:120px;display:inline-block">
+            <div class="progress-fill" style="width:${Math.min(pct*3,100)}%;background:var(--accent)"></div>
+          </div>
+          <span style="font-size:11px;color:var(--text-3);margin-left:6px">${pct.toFixed(1)}%</span>
+        </td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('pedidos-content').innerHTML=`
+      <div style="padding:16px 24px;border-bottom:1px solid var(--border)">
+        <div style="font-size:12.5px;font-weight:600;margin-bottom:12px;color:var(--text-2)">VOLUME POR PRODUTO</div>
+        <table>
+          <thead><tr><th>Produto</th><th class="text-right">Qtde Vendida</th><th class="text-right">Faturamento</th><th class="text-right">% do Total</th></tr></thead>
+          <tbody>${volHtml}</tbody>
+        </table>
+      </div>
+      <div style="padding:16px 24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:12.5px;font-weight:600;color:var(--text-2)">ENTRADAS A IMPORTAR NO FLUXO DE CAIXA</div>
+          <button class="btn btn-primary btn-sm" onclick="confirmarImportacaoCaixa(${JSON.stringify(periodo).replace(/"/g,'&quot;')})">
+            ↓ Inserir no Fluxo de Caixa (${pedidos.length} lançamentos)
+          </button>
+        </div>
+        <div style="max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm)">
+          <table>
+            <thead><tr><th>Data</th><th>Descrição</th><th>Conta</th><th class="text-right">Valor</th></tr></thead>
+            <tbody>
+              ${pedidos.slice(0,20).map(p=>`<tr>
+                <td style="font-size:12px;color:var(--text-3)">${p.data.split('-').reverse().join('/')}</td>
+                <td style="font-weight:500">${p.desc}</td>
+                <td><span class="badge badge-neutral" style="font-size:10px">${p.conta}</span></td>
+                <td class="text-right td-mono" style="color:var(--green);font-weight:600">+${fmtN(p.valor)}</td>
+              </tr>`).join('')}
+              ${pedidos.length>20?`<tr><td colspan="4" style="text-align:center;color:var(--text-3);font-size:12px;padding:10px">… e mais ${pedidos.length-20} lançamentos</td></tr>`:''}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+
+    // Store for confirmation
+    CW._pendingPedidos = pedidos;
+    addLog('pedidos','🛵','Pedidos buscados',`${periodo} · ${totalPed} pedidos · ${fmt(totalFat)}`);
+    toast(`${pedidos.length} lançamentos prontos para importar ✓`);
+  }, 2200);
+}
+
+function confirmarImportacaoCaixa(periodo){
+  const pedidos = CW._pendingPedidos;
+  if(!pedidos||pedidos.length===0) return;
+
+  // Remove lançamentos CW anteriores do mesmo período para evitar duplicatas
+  const removidos = S.lancamentos.filter(l=>l.fonte==='cardapio_web'&&l.data.startsWith(periodo));
+  if(removidos.length>0){
+    if(!confirm(`Já existem ${removidos.length} lançamentos do Cardápio Web para este período. Substituir?`)) return;
+    S.lancamentos=S.lancamentos.filter(l=>!(l.fonte==='cardapio_web'&&l.data.startsWith(periodo)));
+  }
+
+  pedidos.forEach(p=>{
+    S.lancamentos.push({...p,id:IDs.cx++});
+  });
+
+  const totalFat=pedidos.reduce((s,p)=>s+p.valor,0);
+  addLog('caixa','✅','Pedidos inseridos no Fluxo de Caixa',`${pedidos.length} lançamentos · ${fmt(totalFat)}`);
+  toast(`${pedidos.length} lançamentos inseridos no Fluxo de Caixa ✓`);
+  CW._pendingPedidos=null;
+
+  // Refresh button area
+  document.getElementById('pedidos-content').querySelector('button').textContent='✓ Importado';
+  document.getElementById('pedidos-content').querySelector('button').disabled=true;
+  document.getElementById('pedidos-content').querySelector('button').style.background='var(--text-3)';
+}
+
+function addLog(tipo,icon,titulo,detalhe){
+  CW.syncLog.unshift({tipo,icon,titulo,detalhe,ts:new Date()});
+  renderSyncLog();
+}
+
+function renderSyncLog(){
+  const el=document.getElementById('sync-log-content');
+  if(!el) return;
+  if(CW.syncLog.length===0){
+    el.innerHTML='<div class="empty"><div class="empty-icon">🗂</div><div class="empty-title">Sem sincronizações ainda</div></div>';
+    return;
+  }
+  el.innerHTML=CW.syncLog.map(l=>`
+    <div class="sync-log-item">
+      <div class="sync-icon" style="background:var(--surface-2)">${l.icon}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:500">${l.titulo}</div>
+        <div style="font-size:11.5px;color:var(--text-3);margin-top:2px">${l.detalhe}</div>
+      </div>
+      <div style="font-size:11px;color:var(--text-3);white-space:nowrap">${l.ts.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`).join('');
+}
+
+function limparLog(){
+  if(!confirm('Limpar histórico de sincronizações?')) return;
+  CW.syncLog=[];renderSyncLog();toast('Histórico limpo');
+}
+
+
+// ═══ META ADS ════════════════════════════════════════════
+const META = {
+  connected: false,
+  campanhas: [
+    {id:1,nome:'Delivery Sexta & Sábado',status:'ativa',gasto:45.80,impressoes:4820,cliques:312,pedidos_gerados:8,faturamento_gerado:642,periodo:'últimos 7 dias'},
+    {id:2,nome:'Promoção Pizza Família',status:'ativa',gasto:28.50,impressoes:2940,cliques:198,pedidos_gerados:4,faturamento_gerado:428,periodo:'últimos 7 dias'},
+    {id:3,nome:'Remarketing — Clientes Antigos',status:'pausada',gasto:15.00,impressoes:1100,cliques:87,pedidos_gerados:2,faturamento_gerado:214,periodo:'últimos 7 dias'},
+  ],
+};
+
+function renderMetaAds(){
+  // Populate product selector
+  const sel = document.getElementById('meta-produto-ref');
+  if(sel && sel.options.length<=1){
+    S.produtos.forEach(p=>{
+      const opt=document.createElement('option');
+      opt.value=p.id;
+      opt.textContent=`${p.nome} ${p.tamanho} — R$${fmtN(p.precoAtual)}`;
+      sel.appendChild(opt);
+    });
+  }
+  renderMetaCampanhas();
+}
+
+function syncOrcamento(source){
+  const slider=document.getElementById('meta-orcamento-slider');
+  const input=document.getElementById('meta-orcamento-input');
+  const display=document.getElementById('meta-orcamento-display');
+  if(source==='slider'){input.value=slider.value;}
+  else{slider.value=Math.min(500,Math.max(5,parseFloat(input.value)||50));}
+  display.textContent='R$ '+parseInt(slider.value);
+  calcBreakeven();
+}
+
+function calcBreakeven(){
+  const orcamento=parseFloat(document.getElementById('meta-orcamento-input').value)||50;
+  const prodId=parseInt(document.getElementById('meta-produto-ref').value);
+  const res=document.getElementById('breakeven-result');
+  const emp=document.getElementById('breakeven-empty');
+  if(!prodId){res.style.display='none';emp.style.display='block';return;}
+  const prod=S.produtos.find(p=>p.id===prodId);
+  if(!prod){return;}
+  const custoTotal=calcCustoTotal(prod);
+  const margem=prod.precoAtual>0?(prod.precoAtual-custoTotal)/prod.precoAtual:0;
+  if(margem<=0){
+    emp.innerHTML='<span style="color:var(--red)">⚠ Produto com margem negativa — ajuste o preço antes de anunciar</span>';
+    emp.style.display='block';res.style.display='none';return;
+  }
+  const breakeven=orcamento/margem;
+  const unidades=Math.ceil(breakeven/prod.precoAtual);
+  document.getElementById('be-valor').textContent=fmt(breakeven);
+  document.getElementById('be-pizzas').innerHTML=`≈ <strong>${unidades} ${prod.nome} ${prod.tamanho}</strong> a mais do que você venderia sem o anúncio<br><span style="font-size:11px;color:var(--text-3)">Margem do produto: ${(margem*100).toFixed(1)}% · Custo total: ${fmt(custoTotal)}</span>`;
+  res.style.display='block';emp.style.display='none';
+}
+
+function renderMetaCampanhas(){
+  const wrap=document.getElementById('meta-campanhas-mock');
+  if(!wrap)return;
+  wrap.innerHTML=META.campanhas.map(c=>{
+    // Get default breakeven for comparison
+    const prodRef=S.produtos[1]; // Grande como referência
+    const custoTotal=calcCustoTotal(prodRef);
+    const margem=prodRef.precoAtual>0?(prodRef.precoAtual-custoTotal)/prodRef.precoAtual:0.35;
+    const beNeeded=c.gasto/margem;
+    const resultado=c.faturamento_gerado-beNeeded;
+    const verdictClass=resultado>50?'ok':resultado>0?'warn':'bad';
+    const verdictText=resultado>50
+      ?`✓ Lucrou R$${fmtN(resultado)} acima do ponto de equilíbrio`
+      :resultado>0
+      ?`⚠ Cobriu o anúncio por R$${fmtN(resultado)} de margem`
+      :`✗ Anúncio não se pagou — faltaram R$${fmtN(Math.abs(resultado))} em vendas`;
+    const statusCls=c.status==='ativa'?'badge-green':'badge-neutral';
+    const roas=c.gasto>0?(c.faturamento_gerado/c.gasto).toFixed(1):0;
+    return `<div class="meta-campaign-card">
+      <div class="meta-campaign-header">
+        <div>
+          <div class="meta-campaign-name">${c.nome}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px">${c.periodo}</div>
+        </div>
+        <span class="badge ${statusCls}">${c.status}</span>
+      </div>
+      <div class="meta-campaign-grid">
+        <div class="meta-metric">
+          <div class="meta-metric-val" style="color:var(--red)">${fmt(c.gasto)}</div>
+          <div class="meta-metric-lbl">Gasto</div>
+        </div>
+        <div class="meta-metric">
+          <div class="meta-metric-val" style="color:var(--green)">${fmt(c.faturamento_gerado)}</div>
+          <div class="meta-metric-lbl">Faturamento Gerado</div>
+        </div>
+        <div class="meta-metric">
+          <div class="meta-metric-val">${c.pedidos_gerados}</div>
+          <div class="meta-metric-lbl">Pedidos</div>
+        </div>
+        <div class="meta-metric">
+          <div class="meta-metric-val" style="color:${roas>=3?'var(--green)':roas>=1?'var(--yellow)':'var(--red)'}">${roas}x</div>
+          <div class="meta-metric-lbl">ROAS <span class="tip"><span class="tip-icon">?</span><span class="tip-box">Retorno sobre o investimento em anúncio. 3x = para cada R$1 investido, R$3 em vendas geradas. Acima de 3x é considerado bom para restaurantes.</span></span></div>
+        </div>
+      </div>
+      <div class="meta-verdict ${verdictClass}">${verdictText}</div>
+    </div>`;
+  }).join('');
+}
+
+function conectarMeta(){
+  const token=document.getElementById('meta-token').value.trim();
+  if(!token){toast('Cole o token de acesso do Meta','error');return;}
+  const badge=document.getElementById('meta-conn-badge');
+  badge.innerHTML='<span class="conn-dot"></span> Conectando…';
+  badge.className='conn-status testing';
+  setTimeout(()=>{
+    META.connected=true;
+    badge.innerHTML='<span class="conn-dot"></span> Conectado';
+    badge.className='conn-status connected';
+    toast('Meta Ads conectado ✓ Campanhas atualizadas');
+    document.getElementById('meta-campanhas').querySelector('.alert')?.remove();
+  },1800);
+}
+
+// ═══ FECHAMENTO DO MÊS ════════════════════════════════════
+let closingCurrentStep=1;
+const closingChecks=[
+  {id:'c1',label:'Todas as vendas do mês lançadas',check:()=>S.lancamentos.filter(l=>l.tipo==='FL').length>0},
+  {id:'c2',label:'Compras de ingredientes registradas',check:()=>S.lancamentos.filter(l=>l.tipo==='MP').length>0},
+  {id:'c3',label:'Despesas fixas pagas registradas',check:()=>S.lancamentos.filter(l=>l.tipo==='FX').length>0},
+  {id:'c4',label:'Taxas bancárias registradas',check:()=>S.lancamentos.filter(l=>l.tipo==='TX').length>0},
+  {id:'c5',label:'Preços dos ingredientes atualizados',check:()=>true},
+  {id:'c6',label:'Pró-labore do mês registrado',check:()=>S.prolabore.length>0},
+];
+
+function renderFechamento(){
+  renderChecklist();
+  renderFechamentoResumo();
+}
+
+function renderChecklist(){
+  const cont=document.getElementById('checklist-container');
+  if(!cont)return;
+  const done=closingChecks.filter(c=>c.check()).length;
+  cont.innerHTML=`<div style="margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-3);margin-bottom:6px"><span>Progresso</span><span>${done}/${closingChecks.length} itens</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${(done/closingChecks.length*100).toFixed(0)}%;background:var(--accent)"></div></div>
+  </div>`
+  +closingChecks.map(c=>{
+    const ok=c.check();
+    return `<div class="checklist-item">
+      <div class="check-box ${ok?'checked':''}" onclick="this.classList.toggle('checked')">
+        ${ok?'✓':''}
+      </div>
+      <span style="flex:1;${ok?'color:var(--text-3);text-decoration:line-through':''}">${c.label}</span>
+      ${ok?'<span class="badge badge-green">✓</span>':'<span class="badge badge-yellow">Pendente</span>'}
+    </div>`;
+  }).join('');
+}
+
+function renderFechamentoResumo(){
+  const el=document.getElementById('fechamento-resumo');
+  if(!el)return;
+  const lc=S.lancamentos;
+  const entradas=lc.filter(l=>l.valor>0).reduce((s,l)=>s+l.valor,0);
+  const saidas=lc.filter(l=>l.valor<0).reduce((s,l)=>s+Math.abs(l.valor),0);
+  const tipos={FL:0,MP:0,FX:0,VA:0,TX:0,OP:0};
+  lc.forEach(l=>{if(tipos[l.tipo]!==undefined)tipos[l.tipo]+=l.valor;});
+  const TIPO_LABEL={FL:'Vendas',MP:'Ingredientes',FX:'Fixos',VA:'Variáveis',TX:'Taxas',OP:'Operacional'};
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">
+    ${Object.entries(tipos).filter(([,v])=>v!==0).map(([t,v])=>`
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px">
+        <span style="display:flex;align-items:center;gap:7px"><span class="tipo-badge tipo-${t}" style="width:22px;height:22px;font-size:8px">${t}</span>${TIPO_LABEL[t]}</span>
+        <span style="font-weight:600;color:${v>=0?'var(--green)':'var(--red)'}">${v>=0?'+':''}${fmtN(v)}</span>
+      </div>`).join('')}
+    <div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;font-size:14px;border-top:2px solid var(--text);margin-top:4px">
+      <span>Resultado Líquido</span>
+      <span style="color:${entradas-saidas>=0?'var(--green)':'var(--red)'}">${fmt(entradas-saidas)}</span>
+    </div>
+  </div>`;
+}
+
+function closingStep(n){
+  closingCurrentStep=n;
+  document.querySelectorAll('.closing-step').forEach((el,i)=>{
+    el.classList.remove('active','done');
+    if(i+1<n) el.classList.add('done');
+    else if(i+1===n) el.classList.add('active');
+  });
+  document.querySelectorAll('.closing-panel').forEach((el,i)=>{
+    el.classList.toggle('active',i+1===n);
+  });
+  if(n===3) renderRevisarCustos();
+  if(n===4) renderReport();
+}
+
+function handleFileSelect(event){
+  const files=Array.from(event.target.files);
+  files.forEach(f=>addUploadedFile(f));
+}
+function handleDrop(event){
+  event.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag');
+  const files=Array.from(event.dataTransfer.files);
+  files.forEach(f=>addUploadedFile(f));
+}
+function addUploadedFile(file){
+  const wrap=document.getElementById('uploaded-files');
+  const url=URL.createObjectURL(file);
+  const div=document.createElement('div');
+  div.style.cssText='display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface-2);border-radius:6px;margin-bottom:6px;cursor:pointer;border:1px solid var(--border)';
+  div.innerHTML=`<span style="font-size:16px">${file.type.includes('pdf')?'📄':'🖼'}</span>
+    <span style="font-size:12.5px;font-weight:500;flex:1">${file.name}</span>
+    <span style="font-size:11px;color:var(--text-3)">${(file.size/1024).toFixed(0)}KB</span>`;
+  div.onclick=()=>previewFile(url,file.type);
+
+  // Autofill fornecedor if name matches
+  const known=S.lancamentos.map(l=>l.desc).filter(Boolean);
+  const match=known.find(n=>file.name.toLowerCase().includes(n.toLowerCase().split(' ')[0]));
+  if(match) document.getElementById('nf-fornecedor').value=match;
+
+  wrap.appendChild(div);
+  previewFile(url,file.type);
+  // Populate fornecedores datalist
+  const dl=document.getElementById('fornecedores-list');
+  [...new Set(S.lancamentos.map(l=>l.desc))].forEach(n=>{
+    const opt=document.createElement('option');opt.value=n;dl.appendChild(opt);
+  });
+}
+function previewFile(url,type){
+  const prev=document.getElementById('note-preview');
+  if(type.includes('pdf')){
+    prev.innerHTML=`<iframe src="${url}" style="width:100%;height:480px;border:none;border-radius:var(--r-sm)"></iframe>`;
+  } else {
+    prev.innerHTML=`<img src="${url}" style="max-width:100%;max-height:480px;object-fit:contain;border-radius:var(--r-sm)">`;
+  }
+  document.getElementById('nf-data').value=new Date().toISOString().split('T')[0];
+}
+function addFromNota(){
+  const fornecedor=document.getElementById('nf-fornecedor').value.trim();
+  const tipo=document.getElementById('nf-tipo').value;
+  const valor=parseFloat(document.getElementById('nf-valor').value);
+  const data=document.getElementById('nf-data').value;
+  if(!fornecedor||isNaN(valor)||valor<=0||!data){toast('Preencha todos os campos','error');return;}
+  S.lancamentos.push({id:IDs.cx++,data,tipo,desc:fornecedor,valor:-Math.abs(valor),conta:'Caixa'});
+  document.getElementById('nf-fornecedor').value='';
+  document.getElementById('nf-valor').value='';
+  renderChecklist();
+  toast(`Lançamento "${fornecedor}" adicionado ✓`);
+}
+
+function renderRevisarCustos(){
+  // Ingredientes
+  const ti=document.getElementById('tb-revisar-ingr');
+  if(ti) ti.innerHTML=S.ingredientes.slice(0,15).map(i=>`<tr>
+    <td style="font-weight:500">${i.nome} <span style="font-size:10.5px;color:var(--text-3)">(${i.unid})</span></td>
+    <td class="text-right td-mono">${fmt(i.preco)}</td>
+    <td class="text-right">
+      <input type="number" value="${i.preco}" step="0.01" style="width:80px;text-align:right;padding:4px 6px;font-size:12px"
+        onchange="updateIngrPrice(${i.id},this.value)">
+    </td>
+  </tr>`).join('');
+  // Despesas
+  const td=document.getElementById('tb-revisar-desp');
+  if(td) td.innerHTML=S.despesas.map(d=>`<tr>
+    <td>${d.desc}</td>
+    <td class="text-right td-mono">${fmt(d.valor)}</td>
+    <td class="text-right">
+      <input type="number" value="${d.valor}" step="10" style="width:90px;text-align:right;padding:4px 6px;font-size:12px"
+        onchange="updateDespValue(${d.id},this.value)">
+    </td>
+  </tr>`).join('');
+}
+function updateIngrPrice(id,val){
+  const i=S.ingredientes.find(x=>x.id===id);
+  if(!i)return;const p=parseFloat(val);
+  if(!isNaN(p)&&p>0){i.precoAnt=i.preco;i.preco=p;toast('Preço atualizado ✓');}
+}
+function updateDespValue(id,val){
+  const d=S.despesas.find(x=>x.id===id);
+  if(!d)return;const p=parseFloat(val);
+  if(!isNaN(p)&&p>0){d.valor=p;toast('Despesa atualizada ✓');}
+}
+
+function renderReport(){
+  const lc=S.lancamentos;
+  const entradas=lc.filter(l=>l.valor>0).reduce((s,l)=>s+l.valor,0);
+  const saidas=lc.filter(l=>l.valor<0).reduce((s,l)=>s+Math.abs(l.valor),0);
+  const cmv=lc.filter(l=>l.tipo==='MP').reduce((s,l)=>s+Math.abs(l.valor),0);
+  const fixos=S.despesas.reduce((s,d)=>s+d.valor,0);
+  const sal=S.salarios.reduce((s,d)=>s+d.salario*1.18,0);
+  const pl=S.prolabore.reduce((s,d)=>s+d.valor,0);
+  const imp=entradas*S.cfg.imposto;
+  const lucro=entradas-cmv-fixos-sal-pl-imp;
+  const now=new Date();
+  const el=document.getElementById('report-preview');
+  if(!el)return;
+
+  // Group MP purchases by supplier
+  const compras={};
+  lc.filter(l=>l.tipo==='MP').forEach(l=>{compras[l.desc]=(compras[l.desc]||0)+Math.abs(l.valor);});
+
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
+      <div>
+        <div class="report-title">Relatório Gerencial Mensal</div>
+        <div class="report-period">D'Luigi Pizzaria · Referência: Maio 2025 · Gerado em ${now.toLocaleDateString('pt-BR')}</div>
+      </div>
+      <div style="text-align:right;font-size:11px;color:var(--text-3)">
+        <div style="font-weight:600;color:var(--text);font-size:13px">D'Luigi Pizzaria</div>
+        <div>Simples Nacional · 6%</div>
+        <div>Responsável: Sócio Responsável</div>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <div class="report-section-title">DRE Simplificado</div>
+      <div class="report-row"><span>Receita Bruta</span><span style="font-weight:600">${fmt(entradas)}</span></div>
+      <div class="report-row" style="color:var(--red)"><span>(−) Impostos estimados (${(S.cfg.imposto*100).toFixed(0)}%)</span><span>− ${fmt(imp)}</span></div>
+      <div class="report-row" style="color:var(--red)"><span>(−) Custo dos Ingredientes (CMV)</span><span>− ${fmt(cmv)}</span></div>
+      <div class="report-row" style="color:var(--text-2)"><span>= Margem de Contribuição</span><span style="font-weight:600;color:var(--text)">${fmt(entradas-imp-cmv)}</span></div>
+      <div class="report-row" style="color:var(--red)"><span>(−) Despesas Fixas Operacionais</span><span>− ${fmt(fixos)}</span></div>
+      <div class="report-row" style="color:var(--red)"><span>(−) Folha de Pagamento c/ Encargos</span><span>− ${fmt(sal)}</span></div>
+      <div class="report-row" style="color:var(--red)"><span>(−) Pró-labore dos Sócios</span><span>− ${fmt(pl)}</span></div>
+      <div class="report-total"><span>Resultado Líquido do Período</span><span style="color:${lucro>=0?'var(--green)':'var(--red)'}">${lucro>=0?'+':''}${fmt(lucro)}</span></div>
+    </div>
+
+    <div class="report-section">
+      <div class="report-section-title">Compras por Fornecedor (MP)</div>
+      ${Object.entries(compras).map(([f,v])=>`<div class="report-row"><span>${f}</span><span>${fmt(v)}</span></div>`).join('')}
+      <div class="report-total"><span>Total Compras</span><span>${fmt(cmv)}</span></div>
+    </div>
+
+    <div class="report-section">
+      <div class="report-section-title">Despesas Fixas Detalhadas</div>
+      ${S.despesas.map(d=>`<div class="report-row"><span>${d.desc}</span><span>${fmt(d.valor)}</span></div>`).join('')}
+      <div class="report-total"><span>Total Despesas Fixas</span><span>${fmt(fixos)}</span></div>
+    </div>
+
+    <div class="report-section">
+      <div class="report-section-title">Folha de Pagamento</div>
+      ${S.salarios.map(s=>`<div class="report-row"><span>${s.func}</span><span>${fmt(s.salario*1.18)} <span style="font-size:11px;color:var(--text-3)">(c/ 18% encargos)</span></span></div>`).join('')}
+      ${S.prolabore.map(p=>`<div class="report-row"><span>Pró-labore — ${p.nome}</span><span>${fmt(p.valor)}</span></div>`).join('')}
+      <div class="report-total"><span>Total Folha + Pró-labore</span><span>${fmt(sal+pl)}</span></div>
+    </div>
+
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:11px;color:var(--text-3)">
+      Este relatório é de natureza gerencial e não substitui documentos contábeis oficiais. Os valores de imposto são estimativas baseadas no regime cadastrado no sistema.
+    </div>`;
+}
+
+function imprimirRelatorio(){
+  window.print();
+}
+
+// ═══ CATEGORIAS ══════════════════════════════════════════
+const CATS = {
+  tipos: {
+    fixos: [{id:'FL',label:'Venda / Entrada 🔒'},{id:'MP',label:'Ingrediente (MP) 🔒'},{id:'FX',label:'Despesa Fixa 🔒'},{id:'VA',label:'Variável 🔒'},{id:'TX',label:'Taxa Bancária 🔒'},{id:'OP',label:'Operacional 🔒'}],
+    custom: ['Manutenção','Investimento'],
+  },
+  contas: ['Caixa','Pix','Crédito','Débito','Sicoob PJ','Santander'],
+  despcat: ['Infraestrutura','Pessoal','Marketing','Tecnologia','Logística','Financeiro'],
+  prodcat: ['Pizzas','Bebidas','Porções','Sobremesas','Combos'],
+};
+
+function renderCategorias(){
+  // Tipos fixos
+  const tf=document.getElementById('tags-tipos-obrig');
+  if(tf) tf.innerHTML=`<div class="cat-section-title">Categorias do Sistema (não editáveis)</div><div class="tag-list">`
+    +CATS.tipos.fixos.map(t=>`<span class="tag-item" style="opacity:.7">${t.id} — ${t.label}</span>`).join('')
+    +'</div>';
+  renderTagList('tags-tipos-custom', CATS.tipos.custom, 'tipos');
+  renderTagList('tags-contas', CATS.contas, 'contas');
+  renderTagList('tags-desp-cat', CATS.despcat, 'despcat');
+  renderTagList('tags-prod-cat', CATS.prodcat, 'prodcat');
+}
+
+function renderTagList(elId, arr, key){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML=arr.map((t,i)=>`<span class="tag-item">
+    ${t}
+    <span class="tag-remove" onclick="removeTag('${key}',${i})">×</span>
+  </span>`).join('');
+}
+
+function addTag(key){
+  const inputMap={tipos:'new-tipo',contas:'new-conta',despcat:'new-desp-cat',prodcat:'new-prod-cat'};
+  const input=document.getElementById(inputMap[key]);
+  if(!input)return;
+  const val=input.value.trim();
+  if(!val){toast('Digite um nome para a categoria','error');return;}
+  const arr=key==='tipos'?CATS.tipos.custom:CATS[key];
+  if(arr.includes(val)){toast('Categoria já existe','error');return;}
+  arr.push(val);
+  input.value='';
+  renderCategorias();
+  // Update selects in caixa
+  if(key==='contas') updateContaSelect();
+  toast('Categoria adicionada ✓');
+}
+
+function removeTag(key, idx){
+  const arr=key==='tipos'?CATS.tipos.custom:CATS[key];
+  arr.splice(idx,1);
+  renderCategorias();
+  if(key==='contas') updateContaSelect();
+  toast('Categoria removida');
+}
+
+function updateContaSelect(){
+  const sel=document.getElementById('cx-conta');
+  if(!sel)return;
+  const current=sel.value;
+  sel.innerHTML=CATS.contas.map(c=>`<option value="${c}" ${c===current?'selected':''}>${c}</option>`).join('');
+}
+
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('cx-data').value=new Date().toISOString().split('T')[0];
+  recalcMarkup();
+  renderDashboard();
+});
+</script>
+</body>
+</html>
