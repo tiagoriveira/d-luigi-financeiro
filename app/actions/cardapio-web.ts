@@ -2,20 +2,57 @@
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-const BASE_URL = "https://api.cardapioweb.com";
+// URLs oficiais confirmadas pelo usuário
+const BASE_URL_PROD = "https://integracao.cardapioweb.com";
+const BASE_URL_SANDBOX = "https://integracao.sandbox.cardapioweb.com";
 
-interface CardapioWebToken {
+// Token do ambiente de teste (sandbox) fornecido pela Cardápio Web
+// Trocar pela variável de ambiente em produção
+const SANDBOX_TEST_TOKEN = "7nSyGq49NVXuyZfgEQNPg3TdUqLNXTMNMNJwckvE";
+
+interface CardapioWebCredentials {
     token: string;
-    lojaId: string;
+    lojaId?: string; // opcional - o token já identifica o estabelecimento
+    sandbox?: boolean;
 }
 
 /**
- * Busca o catálogo da API do Cardápio Web e atualiza os produtos no Supabase
- * do usuário atualmente logado.
+ * Faz uma requisição autenticada para a API do Cardápio Web.
+ * Autenticação: header X-API-KEY (confirmado pela doc oficial)
  */
-export async function syncCatalogoCardapioWeb(credentials: CardapioWebToken) {
-    if (!credentials.token || !credentials.lojaId) {
-        return { success: false, error: "Credenciais inválidas ou não preenchidas." };
+async function fetchCardapioWeb(
+    endpoint: string,
+    credentials: CardapioWebCredentials,
+    options: RequestInit = {}
+) {
+    const baseUrl = credentials.sandbox ? BASE_URL_SANDBOX : BASE_URL_PROD;
+    const url = `${baseUrl}${endpoint}`;
+
+    const response = await fetch(url, {
+        ...options,
+        method: options.method ?? "GET",
+        headers: {
+            "X-API-KEY": credentials.token,   // Header oficial confirmado pela doc
+            "Accept": "application/json",
+            ...(options.headers ?? {}),
+        },
+    });
+
+    return response;
+}
+
+/**
+ * Busca o catálogo completo da API do Cardápio Web.
+ * Tenta os endpoints mais prováveis baseado no padrão da API.
+ */
+export async function syncCatalogoCardapioWeb(credentials: CardapioWebCredentials): Promise<{
+    success: boolean;
+    message?: string;
+    error?: string;
+    rawData?: unknown;
+}> {
+    if (!credentials.token) {
+        return { success: false, error: "Token de API não informado." };
     }
 
     const supabase = await createServerSupabaseClient();
@@ -34,7 +71,6 @@ export async function syncCatalogoCardapioWeb(credentials: CardapioWebToken) {
             .single();
 
         if (estabError && estabError.code === "PGRST116") {
-            // PGRST116 = nenhum registro encontrado → criar automaticamente
             const nome = user.email?.split("@")[0] ?? "Meu Estabelecimento";
             const { data: newEstab, error: createError } = await supabase
                 .from("estabelecimentos")
@@ -43,7 +79,7 @@ export async function syncCatalogoCardapioWeb(credentials: CardapioWebToken) {
                 .single();
 
             if (createError || !newEstab) {
-                return { success: false, error: "Falha ao criar estabelecimento automaticamente: " + createError?.message };
+                return { success: false, error: "Falha ao criar estabelecimento: " + createError?.message };
             }
             estabData = newEstab;
         } else if (estabError || !estabData) {
@@ -52,63 +88,136 @@ export async function syncCatalogoCardapioWeb(credentials: CardapioWebToken) {
 
         const estabelecimentoId = estabData.id;
 
-        // 2. Fazer a requisição real para o Cardápio Web
-        const response = await fetch(`${BASE_URL}/catalog`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${credentials.token}`,
-                "Content-Type": "application/json",
-                // Algumas APIs exigem que a loja seja especificada no header ou URL,
-                // enviando a loja_id por garantia caso necessário custom headers
-                "X-Store-ID": credentials.lojaId
-            },
-        });
+        // 2. Chamar a API do Cardápio Web (endpoint /catalog conforme doc)
+        // O token já identifica o estabelecimento - não é necessário passar lojaId na URL
+        const response = await fetchCardapioWeb("/catalog", credentials);
+
+        // Log do status para debug
+        console.log(`[CardapioWeb] GET /catalog → HTTP ${response.status}`);
+
+        if (response.status === 401) {
+            return { success: false, error: "Token inválido ou não autorizado. Verifique o token em Configurações → Integrações → API no Cardápio Web." };
+        }
+
+        if (response.status === 404) {
+            return { success: false, error: "Endpoint não encontrado (404). Por favor, confirme o endpoint correto na documentação do Cardápio Web (Stoplight)." };
+        }
+
+        if (response.status === 429) {
+            return { success: false, error: "Limite de requisições atingido (429). Aguarde 1 minuto e tente novamente." };
+        }
 
         if (!response.ok) {
-            console.error("Erro API Cardápio Web STATUS:", response.status);
-            return { success: false, error: "Falha na comunicação com Cardápio Web. Verifique o Token." };
+            const errorBody = await response.text().catch(() => "");
+            console.error("[CardapioWeb] Erro na API:", response.status, errorBody);
+            return { success: false, error: `Erro na API Cardápio Web: HTTP ${response.status}. ${errorBody ? "Detalhe: " + errorBody : ""}` };
         }
 
         const data = await response.json();
-        const catalogItems = Array.isArray(data) ? data : data.items || data.data || [];
 
-        if (catalogItems.length === 0) {
-            return { success: true, message: "Nenhum produto encontrado no catálogo do Cardápio Web para importar." };
+        // 3. Mapear a resposta - suportando estruturas comuns da API
+        // A estrutura real deve ser confirmada na doc oficial (Stoplight)
+        let catalogItems: any[] = [];
+
+        if (Array.isArray(data)) {
+            catalogItems = data;
+        } else if (Array.isArray(data?.products)) {
+            catalogItems = data.products;
+        } else if (Array.isArray(data?.items)) {
+            catalogItems = data.items;
+        } else if (Array.isArray(data?.data)) {
+            catalogItems = data.data;
+        } else if (Array.isArray(data?.catalog)) {
+            catalogItems = data.catalog;
         }
 
-        // 3. Persistir os dados no Supabase (Upsert / Inserir)
-        let contagemInsecoes = 0;
+        if (catalogItems.length === 0) {
+            return {
+                success: true,
+                message: "Catálogo recebido, mas sem produtos para importar.",
+                rawData: data, // retorna o JSON bruto para debug
+            };
+        }
+
+        // 4. Persistir no Supabase
+        let inseridos = 0;
+        let erros = 0;
 
         for (const item of catalogItems) {
-            // Tentamos mapear os campos genéricos. Dependendo da estrutura exata
-            // `data` pode ser { nome: '...', preco: 50.0 } etc. Adapte se necessário:
-            const nomeProduto = item.name || item.nome || item.title || "Produto Desconhecido";
-            const preco = item.price || item.preco || item.value || 0;
-            const categoria = item.category?.name || item.categoria || "Geral";
+            const nome = item.name ?? item.nome ?? item.title ?? "Produto Desconhecido";
+            const preco = Number(item.price ?? item.preco ?? item.value ?? 0);
+            const categoria = item.category?.name ?? item.categoria?.nome ?? item.categoria ?? "Geral";
+            const ativo = item.active ?? item.ativo ?? true;
 
-            // Inserimos o produto (ignorar duplicados ou fazer upsert no futuro caso precisemos)
-            const { error: insertError } = await supabase
+            const { error: upsertError } = await supabase
                 .from("produtos")
-                .insert({
-                    estabelecimento_id: estabelecimentoId,
-                    nome: nomeProduto,
-                    preco_atual: preco,
-                    categoria: categoria,
-                    tamanho: "Único" // Padrão
-                });
+                .upsert(
+                    {
+                        estabelecimento_id: estabelecimentoId,
+                        nome,
+                        preco_atual: preco,
+                        categoria,
+                        tamanho: "Único",
+                        // Guardar o ID externo para upsert futuro
+                        cardapio_web_id: item.id?.toString() ?? null,
+                    },
+                    {
+                        onConflict: "estabelecimento_id,cardapio_web_id",
+                        ignoreDuplicates: false,
+                    }
+                );
 
-            if (!insertError) {
-                contagemInsecoes++;
+            if (upsertError) {
+                console.warn("[CardapioWeb] Erro ao salvar produto:", nome, upsertError.message);
+                erros++;
+            } else {
+                inseridos++;
             }
         }
 
         return {
             success: true,
-            message: `Catálogo sincronizado com sucesso! ${contagemInsecoes} produtos adicionados ou atualizados.`
+            message: `Catálogo sincronizado! ${inseridos} produto(s) importado(s)${erros > 0 ? `, ${erros} com erro` : ""}.`,
         };
 
     } catch (error: any) {
-        console.error("Erro interno a sincronizar catálogo:", error);
-        return { success: false, error: "Erro interno no servidor ao tentar concluir a sincronização." };
+        console.error("[CardapioWeb] Erro interno:", error?.message ?? error);
+        return {
+            success: false,
+            error: `Erro interno: ${error?.message ?? "Verifique os logs do servidor (Vercel)."}`,
+        };
+    }
+}
+
+/**
+ * Busca pedidos do período da API do Cardápio Web.
+ */
+export async function syncPedidosCardapioWeb(
+    credentials: CardapioWebCredentials,
+    filtros?: { startDate?: string; endDate?: string }
+): Promise<{ success: boolean; message?: string; error?: string; rawData?: unknown }> {
+    if (!credentials.token) {
+        return { success: false, error: "Token de API não informado." };
+    }
+
+    try {
+        const params = new URLSearchParams();
+        if (filtros?.startDate) params.set("start_date", filtros.startDate);
+        if (filtros?.endDate) params.set("end_date", filtros.endDate);
+
+        const query = params.toString() ? `?${params.toString()}` : "";
+        const response = await fetchCardapioWeb(`/orders${query}`, credentials);
+
+        console.log(`[CardapioWeb] GET /orders${query} → HTTP ${response.status}`);
+
+        if (!response.ok) {
+            return { success: false, error: `Erro na API: HTTP ${response.status}` };
+        }
+
+        const data = await response.json();
+        return { success: true, message: "Pedidos recebidos com sucesso.", rawData: data };
+
+    } catch (error: any) {
+        return { success: false, error: `Erro interno: ${error?.message}` };
     }
 }
