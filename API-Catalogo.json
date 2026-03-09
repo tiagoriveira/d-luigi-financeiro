@@ -1,0 +1,3060 @@
+{
+    "openapi": "3.1.0",
+    "x-stoplight": {
+        "id": "q7v8zcy7irohb"
+    },
+    "info": {
+        "title": "API Catálogo",
+        "version": "1.0",
+        "description": "A API de catálogo é responsável por fornecer e gerenciar o catálogo completo do estabelecimento incluindo categorias, itens, grupos de complementos e opções.\n\n## Autenticação\n\nTodas as requisições devem incluir obrigatoriamente os seguintes headers:\n\n- `X-API-KEY`: token do estabelecimento\n- `X-PARTNER-KEY`: token da integradora\n\nA ausência de qualquer um desses headers resultará na rejeição da requisição.\n\n## Rate Limits\n\nPara o endpoint `GET /api/partner/v1/catalog`, o limite é de **5 requisições por minuto**.\n\nPara os demais endpoints do módulo de Catálogo, o limite é de **100 requisições por minuto**.",
+        "contact": {
+            "email": "integracao@cardapioweb.com",
+            "url": "https://cardapioweb.com",
+            "name": "Cardápio Web"
+        }
+    },
+    "servers": [
+        {
+            "url": "https://integracao.sandbox.cardapioweb.com",
+            "description": "Sandbox"
+        },
+        {
+            "description": "Produção",
+            "url": "https://integracao.cardapioweb.com"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Catálogo Completo",
+            "description": "Consulta do catálogo completo do estabelecimento."
+        },
+        {
+            "name": "Categorias",
+            "description": "Gerenciamento de categorias do cardápio."
+        },
+        {
+            "name": "Itens",
+            "description": "Gerenciamento de itens (produtos) do cardápio."
+        },
+        {
+            "name": "Grupos de Complementos",
+            "description": "Gerenciamento de grupos de complementos (option groups) do cardápio."
+        },
+        {
+            "name": "Opções",
+            "description": "Gerenciamento de opções (subitens/complementos individuais) do cardápio."
+        },
+        {
+            "name": "Imagens",
+            "description": "Upload e remoção de imagens de categorias, itens e opções."
+        }
+    ],
+    "paths": {
+        "/api/partner/v1/catalog": {
+            "parameters": [],
+            "get": {
+                "summary": "Consultar catálogo completo",
+                "tags": [
+                    "Catálogo Completo"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retorna o catálogo completo do estabelecimento.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Catalog"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                },
+                "operationId": "catalog",
+                "description": "Retorna o catálogo completo do estabelecimento incluindo categorias, itens e complementos.\n\n**Rate limit:** 5 requisições por minuto.",
+                "x-internal": false,
+                "parameters": [],
+                "requestBody": {
+                    "content": {}
+                }
+            }
+        },
+        "/api/partner/v1/catalog/categories": {
+            "get": {
+                "summary": "Listar categorias",
+                "tags": [
+                    "Categorias"
+                ],
+                "operationId": "listCategories",
+                "description": "Retorna a lista paginada de categorias do estabelecimento, incluindo seus itens.",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPage"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de categorias retornada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "categories": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Category"
+                                            }
+                                        },
+                                        "meta": {
+                                            "$ref": "#/components/schemas/PaginationMeta"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "categories": [
+                                        {
+                                            "id": 658,
+                                            "name": "Pizzas salgadas",
+                                            "description": "",
+                                            "index": null,
+                                            "status": "ACTIVE",
+                                            "image": {
+                                                "image_url": "https://storage.googleapis.com/uploads/category/image/658/image.jpg",
+                                                "thumbnail_url": "https://storage.googleapis.com/uploads/category/image/658/thumb_image.jpg"
+                                            },
+                                            "allowed_times": [],
+                                            "items": []
+                                        }
+                                    ],
+                                    "meta": {
+                                        "page": 1,
+                                        "per_page": 30,
+                                        "total": 1,
+                                        "total_pages": 1
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Criar categoria",
+                "tags": [
+                    "Categorias"
+                ],
+                "operationId": "createCategory",
+                "description": "Cria uma nova categoria no cardápio. O nome deve ser único no estabelecimento.",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/CreateCategory"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Categoria criada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Category"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/api/partner/v1/catalog/categories/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "description": "ID da categoria."
+                }
+            ],
+            "get": {
+                "summary": "Consultar categoria",
+                "tags": [
+                    "Categorias"
+                ],
+                "operationId": "getCategory",
+                "description": "Retorna os detalhes de uma categoria específica, incluindo seus itens.",
+                "responses": {
+                    "200": {
+                        "description": "Categoria retornada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Category"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Atualizar categoria",
+                "tags": [
+                    "Categorias"
+                ],
+                "operationId": "updateCategory",
+                "description": "Atualiza os dados de uma categoria existente. Apenas os campos enviados serão atualizados.",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/UpdateCategory"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categoria atualizada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Category"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Excluir categoria",
+                "tags": [
+                    "Categorias"
+                ],
+                "operationId": "deleteCategory",
+                "description": "Exclui uma categoria e todos os seus itens. Complementos e opções não são excluídos, eles apenas são desvinculados dos itens aos quais estavam associados.",
+                "responses": {
+                    "204": {
+                        "description": "Categoria excluída com sucesso."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/api/partner/v1/catalog/items": {
+            "get": {
+                "summary": "Listar itens",
+                "tags": [
+                    "Itens"
+                ],
+                "operationId": "listItems",
+                "description": "Retorna a lista paginada de itens do estabelecimento.",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPage"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de itens retornada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Item"
+                                            }
+                                        },
+                                        "meta": {
+                                            "$ref": "#/components/schemas/PaginationMeta"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Criar item",
+                "tags": [
+                    "Itens"
+                ],
+                "operationId": "createItem",
+                "description": "Cria um novo item no cardápio. O nome deve ser único no estabelecimento.\n\nPara associar grupos de complementos, é necessário que eles tenham sido criados previamente. Em seguida, o ID de cada grupo deve ser enviado no array `option_groups`, utilizando o campo `option_group_id`.",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/CreateItem"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Item criado com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Item"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/api/partner/v1/catalog/items/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "description": "ID do item."
+                }
+            ],
+            "get": {
+                "summary": "Consultar item",
+                "tags": [
+                    "Itens"
+                ],
+                "operationId": "getItem",
+                "description": "Retorna os detalhes completos de um item.",
+                "responses": {
+                    "200": {
+                        "description": "Item retornado com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Item"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Atualizar item",
+                "tags": [
+                    "Itens"
+                ],
+                "operationId": "updateItem",
+                "description": "Atualiza os dados de um item existente. Apenas os campos enviados serão atualizados.\n\nPara gerenciar os grupos de complementos associados ao item, envie o array `option_groups`:\n- Para adicionar: envie `option_group_id` e opcionalmente `index`.\n- Para atualizar o índice de um grupo existente: envie `option_group_id` e o novo `index`.\n- Para remover: envie `option_group_id` e `_destroy: true`.",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/UpdateItem"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Item atualizado com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Item"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Excluir item",
+                "tags": [
+                    "Itens"
+                ],
+                "operationId": "deleteItem",
+                "description": "Exclui um item do cardápio. Complementos e opções não são excluídos, eles apenas são desvinculados do item.",
+                "responses": {
+                    "204": {
+                        "description": "Item excluído com sucesso."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/api/partner/v1/catalog/option_groups": {
+            "get": {
+                "summary": "Listar grupos de complementos",
+                "tags": [
+                    "Grupos de Complementos"
+                ],
+                "operationId": "listOptionGroups",
+                "description": "Retorna a lista paginada de grupos de complementos do estabelecimento, incluindo suas opções.",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPage"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de grupos de complementos retornada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "option_groups": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OptionGroup"
+                                            }
+                                        },
+                                        "meta": {
+                                            "$ref": "#/components/schemas/PaginationMeta"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "option_groups": [
+                                        {
+                                            "id": 1039,
+                                            "name": "Tamanho",
+                                            "status": "ACTIVE",
+                                            "choice_type": "SINGLE",
+                                            "price_calculation_type": "SUM",
+                                            "minimum_quantity": 1,
+                                            "maximum_quantity": 1,
+                                            "options": [
+                                                {
+                                                    "id": 2883,
+                                                    "name": "Pequena",
+                                                    "description": null,
+                                                    "external_code": null,
+                                                    "status": "ACTIVE",
+                                                    "image": null,
+                                                    "cost_price": 0,
+                                                    "active_stock_control": false,
+                                                    "stock": 0,
+                                                    "index": 1,
+                                                    "max_quantity": null,
+                                                    "price": 10
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "meta": {
+                                        "page": 1,
+                                        "per_page": 30,
+                                        "total": 1,
+                                        "total_pages": 1
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Criar grupo de complementos",
+                "tags": [
+                    "Grupos de Complementos"
+                ],
+                "operationId": "createOptionGroup",
+                "description": "Cria um novo grupo de complementos. Opcionalmente, já associa opções existentes ao grupo.\n\nPara associar opções ao grupo, envie o array `options` com o `option_id` (ID da opção), `price` e demais campos aceitos.\n\nApós criar o complemento, ele poderá ser associado a itens utilizando os endpoints de itens.",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/CreateOptionGroup"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Grupo de complementos criado com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OptionGroup"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/api/partner/v1/catalog/option_groups/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "description": "ID do grupo de complementos."
+                }
+            ],
+            "get": {
+                "summary": "Consultar grupo de complementos",
+                "tags": [
+                    "Grupos de Complementos"
+                ],
+                "operationId": "getOptionGroup",
+                "description": "Retorna os detalhes de um grupo de complementos, incluindo suas opções.",
+                "responses": {
+                    "200": {
+                        "description": "Grupo de complementos retornado com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OptionGroup"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Atualizar grupo de complementos",
+                "tags": [
+                    "Grupos de Complementos"
+                ],
+                "operationId": "updateOptionGroup",
+                "description": "Atualiza os dados de um grupo de complementos existente.\n\nPara gerenciar as opções do grupo, envie o array `options`:\n- Para adicionar uma opção: envie `option_id`, `price` e demais campos.\n- Para atualizar uma opção existente: envie `option_id` com os campos a atualizar.\n- Para remover uma opção: envie `option_id` e `_destroy: true`.",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/UpdateOptionGroup"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Grupo de complementos atualizado com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OptionGroup"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Excluir grupo de complementos",
+                "tags": [
+                    "Grupos de Complementos"
+                ],
+                "operationId": "deleteOptionGroup",
+                "description": "Exclui um grupo de complementos e remove todas as suas associações com itens e opções. Os itens e opções não são excluídos.",
+                "responses": {
+                    "204": {
+                        "description": "Grupo de complementos excluído com sucesso."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/api/partner/v1/catalog/options": {
+            "get": {
+                "summary": "Listar opções",
+                "tags": [
+                    "Opções"
+                ],
+                "operationId": "listOptions",
+                "description": "Retorna a lista paginada de opções do estabelecimento.",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPage"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de opções retornada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "options": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Option"
+                                            }
+                                        },
+                                        "meta": {
+                                            "$ref": "#/components/schemas/PaginationMeta"
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "options": [
+                                        {
+                                            "id": 2883,
+                                            "name": "Pequena",
+                                            "description": null,
+                                            "external_code": null,
+                                            "status": "ACTIVE",
+                                            "image": null,
+                                            "cost_price": null,
+                                            "active_stock_control": false,
+                                            "stock": 0
+                                        }
+                                    ],
+                                    "meta": {
+                                        "page": 1,
+                                        "per_page": 30,
+                                        "total": 1,
+                                        "total_pages": 1
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Criar opção",
+                "tags": [
+                    "Opções"
+                ],
+                "operationId": "createOption",
+                "description": "Cria uma nova opção. O nome deve ser único no estabelecimento.\n\nApós criar a opção, ela pode ser associada a grupos de complementos via os endpoints de grupos.",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/CreateOption"
+                },
+                "responses": {
+                    "201": {
+                        "description": "Opção criada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Option"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/api/partner/v1/catalog/options/{id}": {
+            "parameters": [
+                {
+                    "name": "id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "description": "ID da opção."
+                }
+            ],
+            "get": {
+                "summary": "Consultar opção",
+                "tags": [
+                    "Opções"
+                ],
+                "operationId": "getOption",
+                "description": "Retorna os detalhes de uma opção específica.",
+                "responses": {
+                    "200": {
+                        "description": "Opção retornada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Option"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Atualizar opção",
+                "tags": [
+                    "Opções"
+                ],
+                "operationId": "updateOption",
+                "description": "Atualiza os dados de uma opção existente. Apenas os campos enviados serão atualizados.",
+                "requestBody": {
+                    "$ref": "#/components/requestBodies/UpdateOption"
+                },
+                "responses": {
+                    "200": {
+                        "description": "Opção atualizada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Option"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Excluir opção",
+                "tags": [
+                    "Opções"
+                ],
+                "operationId": "deleteOption",
+                "description": "Exclui (soft delete) uma opção. Ela será removida de todos os grupos de complementos onde estava associada.",
+                "responses": {
+                    "204": {
+                        "description": "Opção excluída com sucesso."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        },
+        "/api/partner/v1/catalog/{resource_type}/{resource_id}/image": {
+            "parameters": [
+                {
+                    "name": "resource_type",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "items",
+                            "categories",
+                            "subitems"
+                        ]
+                    },
+                    "description": "Tipo do recurso. Valores aceitos: `items`, `categories`, `subitems`."
+                },
+                {
+                    "name": "resource_id",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "description": "ID do recurso."
+                }
+            ],
+            "post": {
+                "summary": "Upload de imagem",
+                "tags": [
+                    "Imagens"
+                ],
+                "operationId": "uploadImage",
+                "description": "Faz upload de uma imagem para um recurso (categoria, item ou opção). A imagem deve ser enviada via `multipart/form-data`.\n\n**Formatos aceitos:** JPG, JPEG, PNG, WebP, GIF.\n\nUma versão thumbnail é gerada automaticamente.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "image"
+                                ],
+                                "properties": {
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "Arquivo de imagem. Formatos aceitos: JPG, JPEG, PNG, WebP, GIF."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Imagem enviada com sucesso.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ImageUpload"
+                                },
+                                "example": {
+                                    "id": 658,
+                                    "resource_type": "categories",
+                                    "image_url": "https://storage.googleapis.com/uploads/category/image/658/image.jpg"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Recurso inválido.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "errors": {
+                                            "type": "object",
+                                            "properties": {
+                                                "resource_type": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "example": {
+                                    "errors": {
+                                        "resource_type": [
+                                            "Recurso inválido"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Remover imagem",
+                "tags": [
+                    "Imagens"
+                ],
+                "operationId": "deleteImage",
+                "description": "Remove a imagem de um recurso (categoria, item ou opção).",
+                "responses": {
+                    "204": {
+                        "description": "Imagem removida com sucesso."
+                    },
+                    "400": {
+                        "description": "Recurso inválido."
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "429": {
+                        "$ref": "#/components/responses/TooManyRequests"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Catalog": {
+                "type": "object",
+                "title": "Catálogo",
+                "description": "Catálogo completo do estabelecimento.",
+                "x-internal": false,
+                "properties": {
+                    "categories": {
+                        "type": "array",
+                        "description": "Lista de categorias.",
+                        "items": {
+                            "$ref": "#/components/schemas/Category"
+                        }
+                    }
+                },
+                "examples": [
+                    {
+                        "categories": [
+                            {
+                                "id": 658,
+                                "name": "Pizzas salgadas",
+                                "description": "",
+                                "index": null,
+                                "status": "ACTIVE",
+                                "image": {
+                                    "image_url": "https://storage.googleapis.com/dev-cardapio-web/uploads/category/image/658/image.jpg",
+                                    "thumbnail_url": "https://storage.googleapis.com/dev-cardapio-web/uploads/category/image/658/thumb_image.jpg"
+                                },
+                                "allowed_times": [],
+                                "items": [
+                                    {
+                                        "id": 2988,
+                                        "name": "Margherita",
+                                        "description": "A clássica pizza italiana com ingredientes frescos e sabores simples.",
+                                        "image": {
+                                            "image_url": "https://storage.googleapis.com/dev-cardapio-web/uploads/item/image/2988/image.jpg",
+                                            "thumbnail_url": "https://storage.googleapis.com/dev-cardapio-web/uploads/item/image/2988/thumb_image.jpg"
+                                        },
+                                        "highlighted": false,
+                                        "external_code": "",
+                                        "price": 30,
+                                        "cost_price": 12.5,
+                                        "stock": 0,
+                                        "active_stock_control": false,
+                                        "index": null,
+                                        "available_for": [
+                                            "delivery",
+                                            "service_desk",
+                                            "table",
+                                            "view_only"
+                                        ],
+                                        "hide_observation_field": false,
+                                        "adults_only": false,
+                                        "promotional_price_active": false,
+                                        "promotional_price": null,
+                                        "promotional_price_schedules": null,
+                                        "status": "ACTIVE",
+                                        "unit_type": "UN",
+                                        "badge": null,
+                                        "kind": "regular_item",
+                                        "allowed_times": [],
+                                        "extra_images": [],
+                                        "option_groups": [
+                                            {
+                                                "id": 1039,
+                                                "name": "Tamanho",
+                                                "status": "ACTIVE",
+                                                "choice_type": "SINGLE",
+                                                "price_calculation_type": "SUM",
+                                                "minimum_quantity": 1,
+                                                "maximum_quantity": 1,
+                                                "index": 1,
+                                                "options": [
+                                                    {
+                                                        "id": 2883,
+                                                        "name": "Pequena",
+                                                        "description": null,
+                                                        "external_code": null,
+                                                        "status": "ACTIVE",
+                                                        "image": null,
+                                                        "cost_price": 0,
+                                                        "active_stock_control": false,
+                                                        "stock": 0,
+                                                        "index": 1,
+                                                        "max_quantity": null,
+                                                        "price": 10
+                                                    },
+                                                    {
+                                                        "id": 2884,
+                                                        "name": "Média",
+                                                        "description": null,
+                                                        "external_code": null,
+                                                        "status": "ACTIVE",
+                                                        "image": null,
+                                                        "cost_price": 0,
+                                                        "active_stock_control": false,
+                                                        "stock": 0,
+                                                        "index": 2,
+                                                        "max_quantity": null,
+                                                        "price": 15
+                                                    },
+                                                    {
+                                                        "id": 2885,
+                                                        "name": "Grande",
+                                                        "description": null,
+                                                        "external_code": null,
+                                                        "status": "ACTIVE",
+                                                        "image": null,
+                                                        "cost_price": 0,
+                                                        "active_stock_control": false,
+                                                        "stock": 0,
+                                                        "index": 3,
+                                                        "max_quantity": null,
+                                                        "price": 20
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "combo_steps": []
+                                    },
+                                    {
+                                        "id": 3010,
+                                        "name": "Combo da promoção!",
+                                        "description": "",
+                                        "image": {
+                                            "image_url": "https://storage.googleapis.com/dev-cardapio-web/uploads/item/image/3010/image.jpg",
+                                            "thumbnail_url": "https://storage.googleapis.com/dev-cardapio-web/uploads/item/image/3010/thumb_image.jpg"
+                                        },
+                                        "highlighted": false,
+                                        "external_code": "",
+                                        "price": 16,
+                                        "cost_price": 0,
+                                        "stock": 0,
+                                        "active_stock_control": false,
+                                        "index": null,
+                                        "available_for": [
+                                            "delivery",
+                                            "service_desk"
+                                        ],
+                                        "hide_observation_field": false,
+                                        "adults_only": false,
+                                        "promotional_price_active": false,
+                                        "promotional_price": null,
+                                        "promotional_price_schedules": null,
+                                        "status": "ACTIVE",
+                                        "unit_type": "UN",
+                                        "badge": null,
+                                        "kind": "combo",
+                                        "allowed_times": [
+                                            {
+                                                "weekday": "wednesday",
+                                                "start_at": "17:00",
+                                                "end_at": "23:59"
+                                            },
+                                            {
+                                                "weekday": "tuesday",
+                                                "start_at": "17:00",
+                                                "end_at": "23:59"
+                                            },
+                                            {
+                                                "weekday": "monday",
+                                                "start_at": "00:00",
+                                                "end_at": "23:59"
+                                            }
+                                        ],
+                                        "extra_images": [],
+                                        "option_groups": [],
+                                        "combo_steps": [
+                                            {
+                                                "id": 123,
+                                                "name": "Bebida",
+                                                "price": 5,
+                                                "remove_add_on_prices": false,
+                                                "index": 1,
+                                                "combo_step_items": [
+                                                    {
+                                                        "item_id": 3006,
+                                                        "index": 1,
+                                                        "additional_price": 3
+                                                    },
+                                                    {
+                                                        "item_id": 3005,
+                                                        "index": 1,
+                                                        "additional_price": 0
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "id": 124,
+                                                "name": "Pizza",
+                                                "price": 14,
+                                                "remove_add_on_prices": false,
+                                                "index": 0,
+                                                "combo_step_items": [
+                                                    {
+                                                        "item_id": 2991,
+                                                        "index": 1,
+                                                        "additional_price": 0
+                                                    },
+                                                    {
+                                                        "item_id": 2992,
+                                                        "index": 1,
+                                                        "additional_price": 0
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "id": 661,
+                                "name": "Bebidas",
+                                "description": "",
+                                "index": null,
+                                "status": "ACTIVE",
+                                "image": null,
+                                "allowed_times": [],
+                                "items": [
+                                    {
+                                        "id": 3007,
+                                        "name": "Cerveja Lata",
+                                        "description": "",
+                                        "image": {
+                                            "image_url": "https://storage.googleapis.com/dev-cardapio-web/uploads/item/image/3007/image.jpg",
+                                            "thumbnail_url": "https://storage.googleapis.com/dev-cardapio-web/uploads/item/image/3007/thumb_image.jpg"
+                                        },
+                                        "highlighted": false,
+                                        "external_code": "",
+                                        "price": 8,
+                                        "cost_price": 0,
+                                        "stock": 0,
+                                        "active_stock_control": false,
+                                        "index": null,
+                                        "available_for": [
+                                            "delivery",
+                                            "service_desk",
+                                            "table",
+                                            "view_only"
+                                        ],
+                                        "hide_observation_field": false,
+                                        "adults_only": true,
+                                        "promotional_price_active": false,
+                                        "promotional_price": null,
+                                        "promotional_price_schedules": null,
+                                        "status": "ACTIVE",
+                                        "unit_type": "UN",
+                                        "badge": null,
+                                        "kind": "regular_item",
+                                        "allowed_times": [],
+                                        "extra_images": [],
+                                        "option_groups": [
+                                            {
+                                                "id": 1044,
+                                                "name": "Escolha sua cerveja",
+                                                "status": "ACTIVE",
+                                                "choice_type": "SINGLE",
+                                                "price_calculation_type": "SUM",
+                                                "minimum_quantity": 1,
+                                                "maximum_quantity": 1,
+                                                "index": 1,
+                                                "options": [
+                                                    {
+                                                        "id": 2898,
+                                                        "name": "Heineken",
+                                                        "description": null,
+                                                        "external_code": null,
+                                                        "status": "ACTIVE",
+                                                        "image": null,
+                                                        "cost_price": 0,
+                                                        "active_stock_control": false,
+                                                        "stock": 0,
+                                                        "index": 1,
+                                                        "max_quantity": null,
+                                                        "price": 0
+                                                    }
+                                                ]
+                                            }
+                                        ],
+                                        "combo_steps": []
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            "Category": {
+                "type": "object",
+                "title": "Categoria",
+                "description": "Categoria do cardápio que agrupa itens relacionados.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Identificador único da categoria."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Nome da categoria."
+                    },
+                    "description": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "Descrição da categoria."
+                    },
+                    "index": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Índice de exibição da categoria."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ACTIVE",
+                            "INACTIVE",
+                            "MISSING"
+                        ],
+                        "description": "Status da categoria.\n- `ACTIVE`: categoria ativa e visível.\n- `INACTIVE`: categoria oculta.\n- `MISSING`: categoria em falta."
+                    },
+                    "image": {
+                        "$ref": "#/components/schemas/Image",
+                        "description": "Imagem da categoria."
+                    },
+                    "allowed_times": {
+                        "type": "array",
+                        "description": "Horários de disponibilidade da categoria. Array vazio significa sempre disponível.",
+                        "items": {
+                            "$ref": "#/components/schemas/AllowedTimes"
+                        }
+                    },
+                    "items": {
+                        "type": "array",
+                        "description": "Lista de itens da categoria.",
+                        "items": {
+                            "$ref": "#/components/schemas/Item"
+                        }
+                    }
+                }
+            },
+            "Item": {
+                "type": "object",
+                "title": "Item",
+                "description": "Produto do cardápio que pode ser item regular ou combo.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Identificador único do item."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Nome do item."
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Descrição do item. Suporta formatação: negrito (\\*texto\\*), itálico (\\_texto\\_) ou riscado (\\~texto\\~)."
+                    },
+                    "image": {
+                        "$ref": "#/components/schemas/Image",
+                        "description": "Imagem principal do item."
+                    },
+                    "highlighted": {
+                        "type": "boolean",
+                        "description": "Indica se o item deve aparecer em destaque no site."
+                    },
+                    "external_code": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Código externo do item."
+                    },
+                    "price": {
+                        "type": "number",
+                        "description": "Preço base do item. Deve ser um número positivo com no máximo 2 casas decimais.",
+                        "minimum": 0
+                    },
+                    "cost_price": {
+                        "type": "number",
+                        "description": "Preço de custo do item. Deve ser um número positivo com no máximo 2 casas decimais.",
+                        "minimum": 0
+                    },
+                    "stock": {
+                        "type": "number",
+                        "description": "Quantidade disponível em estoque.",
+                        "minimum": 0
+                    },
+                    "active_stock_control": {
+                        "type": "boolean",
+                        "description": "Indica se o controle de estoque está ativo."
+                    },
+                    "index": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Índice de exibição do item dentro da categoria."
+                    },
+                    "available_for": {
+                        "type": "array",
+                        "description": "Locais onde o item está disponível.\n- `delivery`: cardápio digital de delivery e retirada.\n- `internal_table`: pedido de mesa pelo portal.\n- `table`: pedido de mesa pelo cardápio digital.\n- `service_desk`: cardápio digital de balcão e portal.\n- `view_only`: cardápio digital de visualização.",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "delivery",
+                                "table",
+                                "service_desk",
+                                "view_only",
+                                "internal_table"
+                            ]
+                        }
+                    },
+                    "hide_observation_field": {
+                        "type": "boolean",
+                        "description": "Indica se o campo de observações deve ser escondido."
+                    },
+                    "adults_only": {
+                        "type": "boolean",
+                        "description": "Indica se o item é apenas para maiores de 18 anos."
+                    },
+                    "promotional_price_active": {
+                        "type": "boolean",
+                        "description": "Indica se o preço promocional está ativo."
+                    },
+                    "promotional_price": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "description": "Preço promocional do item. Deve ser menor que `price` quando ativo. É obrigatório se `promotional_price_active` for `true`.",
+                        "minimum": 0
+                    },
+                    "promotional_price_schedules": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Horários em que o preço promocional é aplicado. Se `promotional_price_active` for `true`, define os dias e horários da promoção.",
+                        "items": {
+                            "$ref": "#/components/schemas/PromotionalPriceSchedule"
+                        }
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ACTIVE",
+                            "INACTIVE",
+                            "MISSING"
+                        ],
+                        "description": "Status do item.\n- `ACTIVE`: item ativo e visível.\n- `INACTIVE`: item oculto.\n- `MISSING`: item em falta."
+                    },
+                    "unit_type": {
+                        "type": "string",
+                        "enum": [
+                            "UN",
+                            "KG",
+                            "L"
+                        ],
+                        "default": "UN",
+                        "description": "Unidade de medida do item.\n- `UN`: unidade (padrão).\n- `KG`: quilograma.\n- `L`: litro."
+                    },
+                    "badge": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "enum": [
+                            "best_seller",
+                            "new_item",
+                            "recommended",
+                            "limited_edition"
+                        ],
+                        "description": "Badge de destaque do item.\n- `best_seller`: mais vendido.\n- `new_item`: novidade.\n- `recommended`: recomendado.\n- `limited_edition`: edição limitada."
+                    },
+                    "kind": {
+                        "type": "string",
+                        "enum": [
+                            "regular_item",
+                            "combo"
+                        ],
+                        "description": "Tipo do item.\n- `regular_item`: item normal.\n- `combo`: combo."
+                    },
+                    "allowed_times": {
+                        "type": "array",
+                        "description": "Horários de disponibilidade do item. Array vazio significa sempre disponível.",
+                        "items": {
+                            "$ref": "#/components/schemas/AllowedTimes"
+                        }
+                    },
+                    "extra_images": {
+                        "type": "array",
+                        "description": "Imagens extras do item.",
+                        "items": {
+                            "$ref": "#/components/schemas/Image"
+                        }
+                    },
+                    "option_groups": {
+                        "type": "array",
+                        "description": "Grupos de complementos associados ao item. Disponível quando `kind` é `regular_item`.",
+                        "items": {
+                            "$ref": "#/components/schemas/OptionGroupInItem"
+                        }
+                    },
+                    "combo_steps": {
+                        "type": "array",
+                        "description": "Etapas do combo. Disponível quando `kind` é `combo`.",
+                        "items": {
+                            "$ref": "#/components/schemas/ComboStep"
+                        }
+                    }
+                }
+            },
+            "OptionGroup": {
+                "type": "object",
+                "title": "Grupo de complementos",
+                "description": "Grupo de complementos reutilizável que pode ser associado a múltiplos itens.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Identificador único do grupo de complementos."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Nome do grupo de complementos."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ACTIVE",
+                            "INACTIVE",
+                            "MISSING"
+                        ],
+                        "description": "Status do grupo de complementos.\n- `ACTIVE`: grupo ativo e visível.\n- `INACTIVE`: grupo oculto.\n- `MISSING`: grupo em falta."
+                    },
+                    "choice_type": {
+                        "type": "string",
+                        "enum": [
+                            "SINGLE",
+                            "MULTIPLE",
+                            "SUMMABLE"
+                        ],
+                        "description": "Regra de escolha das opções no grupo.\n- `SINGLE`: apenas uma opção pode ser escolhida.\n- `MULTIPLE`: mais de uma opção pode ser escolhida, sem repetição.\n- `SUMMABLE`: mais de uma opção pode ser escolhida, com repetição permitida."
+                    },
+                    "price_calculation_type": {
+                        "type": "string",
+                        "enum": [
+                            "SUM",
+                            "MEAN",
+                            "MAX",
+                            "MIN"
+                        ],
+                        "description": "Regra de cálculo do preço quando múltiplas opções são selecionadas.\n- `SUM`: soma dos preços das opções selecionadas.\n- `MEAN`: média dos preços das opções selecionadas.\n- `MAX`: preço da opção mais cara entre as selecionadas.\n- `MIN`: preço da opção mais barata entre as selecionadas."
+                    },
+                    "minimum_quantity": {
+                        "type": "integer",
+                        "description": "Quantidade mínima de opções que devem ser selecionadas.",
+                        "minimum": 0
+                    },
+                    "maximum_quantity": {
+                        "type": "integer",
+                        "description": "Quantidade máxima de opções que podem ser selecionadas.",
+                        "minimum": 1
+                    },
+                    "options": {
+                        "type": "array",
+                        "description": "Lista das opções do grupo, com seus preços e configurações dentro do grupo.",
+                        "items": {
+                            "$ref": "#/components/schemas/OptionInGroup"
+                        }
+                    }
+                }
+            },
+            "OptionGroupInItem": {
+                "type": "object",
+                "title": "Grupo de complementos (no item)",
+                "description": "Grupo de complementos associado a um item.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Identificador único do grupo de complementos."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Nome do grupo de complementos."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ACTIVE",
+                            "INACTIVE",
+                            "MISSING"
+                        ],
+                        "description": "Status do grupo de complementos.\n- `ACTIVE`: grupo ativo e visível.\n- `INACTIVE`: grupo oculto.\n- `MISSING`: grupo em falta."
+                    },
+                    "choice_type": {
+                        "type": "string",
+                        "enum": [
+                            "SINGLE",
+                            "MULTIPLE",
+                            "SUMMABLE"
+                        ],
+                        "description": "Regra de escolha das opções no grupo.\n- `SINGLE`: apenas uma opção pode ser escolhida.\n- `MULTIPLE`: mais de uma opção pode ser escolhida, sem repetição.\n- `SUMMABLE`: mais de uma opção pode ser escolhida, com repetição permitida."
+                    },
+                    "price_calculation_type": {
+                        "type": "string",
+                        "enum": [
+                            "SUM",
+                            "MEAN",
+                            "MAX",
+                            "MIN"
+                        ],
+                        "description": "Regra de cálculo do preço quando múltiplas opções são selecionadas.\n- `SUM`: soma dos preços das opções selecionadas.\n- `MEAN`: média dos preços das opções selecionadas.\n- `MAX`: preço da opção mais cara entre as selecionadas.\n- `MIN`: preço da opção mais barata entre as selecionadas."
+                    },
+                    "minimum_quantity": {
+                        "type": "integer",
+                        "description": "Quantidade mínima de opções.",
+                        "minimum": 0
+                    },
+                    "maximum_quantity": {
+                        "type": "integer",
+                        "description": "Quantidade máxima de opções.",
+                        "minimum": 1
+                    },
+                    "index": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Índice de exibição do grupo dentro do item."
+                    },
+                    "options": {
+                        "type": "array",
+                        "description": "Lista das opções do grupo.",
+                        "items": {
+                            "$ref": "#/components/schemas/OptionInGroup"
+                        }
+                    }
+                }
+            },
+            "OptionInGroup": {
+                "type": "object",
+                "title": "Opção (no grupo de complemento)",
+                "description": "Opção dentro de um grupo de complementos.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Identificador único da opção (subitem)."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Nome da opção."
+                    },
+                    "description": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "Descrição da opção."
+                    },
+                    "external_code": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "Código externo da opção."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ACTIVE",
+                            "INACTIVE",
+                            "MISSING"
+                        ],
+                        "description": "Status da opção.\n- `ACTIVE`: opção ativa e visível.\n- `INACTIVE`: opção oculta.\n- `MISSING`: opção em falta."
+                    },
+                    "image": {
+                        "$ref": "#/components/schemas/Image",
+                        "description": "Imagem da opção."
+                    },
+                    "cost_price": {
+                        "type": "number",
+                        "description": "Preço de custo da opção.",
+                        "minimum": 0
+                    },
+                    "active_stock_control": {
+                        "type": "boolean",
+                        "description": "Indica se o controle de estoque está ativo."
+                    },
+                    "stock": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "description": "Quantidade disponível em estoque."
+                    },
+                    "index": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Índice de exibição da opção dentro do grupo."
+                    },
+                    "max_quantity": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Quantidade máxima desta opção que pode ser selecionada dentro do grupo de complementos. Relevante quando `choice_type` do grupo é `SUMMABLE`."
+                    },
+                    "price": {
+                        "type": "number",
+                        "description": "Preço da opção dentro deste grupo. Deve ser um número positivo com no máximo 2 casas decimais. Uma mesma opção pode ter preços diferentes em grupos diferentes.",
+                        "minimum": 0
+                    },
+                    "badge": {
+                        "x-stoplight": {
+                            "id": "l0rqsi0rwrrzs"
+                        },
+                        "description": "Badge de destaque da opção dentro do grupo.\n- `best_seller`: mais vendido.\n- `new_item`: novidade.\n- `recommended`: recomendado.\n- `limited_edition`: edição limitada.",
+                        "enum": [
+                            "best_seller",
+                            "new_item",
+                            "recommended",
+                            "limited_edition"
+                        ]
+                    }
+                }
+            },
+            "Option": {
+                "type": "object",
+                "title": "Opção",
+                "description": "Opção que pode ser associada a múltiplos grupos de complementos.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Identificador único da opção."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Nome da opção."
+                    },
+                    "description": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "Descrição da opção."
+                    },
+                    "external_code": {
+                        "type": [
+                            "null",
+                            "string"
+                        ],
+                        "description": "Código externo da opção."
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "ACTIVE",
+                            "INACTIVE",
+                            "MISSING"
+                        ],
+                        "description": "Status da opção.\n- `ACTIVE`: opção ativa e visível.\n- `INACTIVE`: opção oculta.\n- `MISSING`: opção em falta."
+                    },
+                    "image": {
+                        "$ref": "#/components/schemas/Image",
+                        "description": "Imagem da opção."
+                    },
+                    "cost_price": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "description": "Preço de custo da opção.",
+                        "minimum": 0
+                    },
+                    "active_stock_control": {
+                        "type": "boolean",
+                        "description": "Indica se o controle de estoque está ativo."
+                    },
+                    "stock": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "description": "Quantidade disponível em estoque."
+                    }
+                }
+            },
+            "Image": {
+                "title": "Image",
+                "type": [
+                    "object",
+                    "null"
+                ],
+                "description": "Imagem associada a um recurso (categoria, item ou opção).",
+                "properties": {
+                    "image_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "URL da imagem versão padrão."
+                    },
+                    "thumbnail_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "URL da imagem versão reduzida (thumbnail)."
+                    }
+                }
+            },
+            "AllowedTimes": {
+                "title": "AllowedTimes",
+                "type": "object",
+                "description": "Intervalo de horário de disponibilidade para um dia da semana.",
+                "properties": {
+                    "weekday": {
+                        "type": "string",
+                        "enum": [
+                            "sunday",
+                            "monday",
+                            "tuesday",
+                            "wednesday",
+                            "thursday",
+                            "friday",
+                            "saturday"
+                        ],
+                        "description": "Dia da semana."
+                    },
+                    "start_at": {
+                        "type": "string",
+                        "example": "18:00",
+                        "description": "Horário de início `(HH:MM)` no fuso horário do estabelecimento."
+                    },
+                    "end_at": {
+                        "type": "string",
+                        "example": "23:00",
+                        "description": "Horário de fim `(HH:MM)` no fuso horário do estabelecimento."
+                    }
+                }
+            },
+            "PromotionalPriceSchedule": {
+                "title": "PromotionalPriceSchedule",
+                "type": "object",
+                "description": "Dia da semana e intervalo de horário para aplicação de preço promocional.",
+                "required": [
+                    "day"
+                ],
+                "properties": {
+                    "day": {
+                        "type": "string",
+                        "enum": [
+                            "sunday",
+                            "monday",
+                            "tuesday",
+                            "wednesday",
+                            "thursday",
+                            "friday",
+                            "saturday"
+                        ],
+                        "description": "Dia da semana."
+                    },
+                    "start": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Horário de início `(HH:MM)` da promoção no fuso horário do estabelecimento. Se omitido juntamente com `end`, a promoção será válida durante todo o dia. É obrigatório caso `end` seja informado.",
+                        "example": "18:00"
+                    },
+                    "end": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Horário de fim `(HH:MM)` da promoção no fuso horário do estabelecimento. Se omitido juntamente com `start`, a promoção será válida durante todo o dia. É obrigatório caso `start` seja informado. Deve ser maior que o `start`.",
+                        "example": "23:00"
+                    }
+                }
+            },
+            "ComboStep": {
+                "title": "ComboStep",
+                "type": "object",
+                "description": "Etapa de seleção de um combo.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Identificador único da etapa."
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Nome da etapa."
+                    },
+                    "price": {
+                        "type": "number",
+                        "description": "Preço base da etapa, independente do item escolhido.",
+                        "minimum": 0
+                    },
+                    "remove_add_on_prices": {
+                        "type": "boolean",
+                        "description": "Se `true`, preços de complementos escolhidos são ignorados no cálculo."
+                    },
+                    "index": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Índice de exibição da etapa dentro do combo."
+                    },
+                    "combo_step_items": {
+                        "type": "array",
+                        "description": "Itens disponíveis nesta etapa.",
+                        "items": {
+                            "$ref": "#/components/schemas/ComboStepItem"
+                        }
+                    }
+                }
+            },
+            "ComboStepItem": {
+                "title": "ComboStepItem",
+                "type": "object",
+                "description": "Item disponível para seleção em uma etapa de combo.",
+                "properties": {
+                    "item_id": {
+                        "type": "integer",
+                        "description": "ID do item disponível nesta etapa."
+                    },
+                    "index": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Índice de exibição do item dentro da etapa."
+                    },
+                    "additional_price": {
+                        "type": "number",
+                        "description": "Preço adicional cobrado pela escolha deste item, somado ao preço base da etapa.",
+                        "minimum": 0
+                    }
+                }
+            },
+            "PaginationMeta": {
+                "title": "PaginationMeta",
+                "type": "object",
+                "description": "Metadados de paginação.",
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "description": "Página atual."
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "description": "Quantidade de itens por página."
+                    },
+                    "total": {
+                        "type": "integer",
+                        "description": "Quantidade total de registros."
+                    },
+                    "total_pages": {
+                        "type": "integer",
+                        "description": "Quantidade total de páginas."
+                    }
+                }
+            },
+            "ImageUpload": {
+                "title": "ImageUpload",
+                "type": "object",
+                "description": "Resposta de sucesso do upload de imagem.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "ID do recurso."
+                    },
+                    "resource_type": {
+                        "type": "string",
+                        "description": "Tipo do recurso.",
+                        "enum": [
+                            "items",
+                            "categories",
+                            "subitems"
+                        ]
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "URL da imagem enviada."
+                    }
+                }
+            },
+            "Error": {
+                "title": "Error",
+                "type": "object",
+                "description": "Resposta de erro padrão da API.",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "description": "Código interno de identificação do erro."
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Mensagem de resumo do erro."
+                    },
+                    "details": {
+                        "type": "string",
+                        "description": "Detalhes adicionais do erro (quando disponível)."
+                    },
+                    "errors": {
+                        "type": "object",
+                        "description": "Erros de validação por campo (quando disponível).",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "code",
+                    "message"
+                ]
+            },
+            "Unauthorized": {
+                "type": "object",
+                "title": "Unauthorized",
+                "description": "Resposta de erro de autenticação. Retornado quando os headers `X-API-KEY` ou `X-PARTNER-KEY` estão ausentes ou são inválidos.",
+                "examples": [
+                    {
+                        "code": 4010,
+                        "message": "Token inválido."
+                    }
+                ],
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "description": "Código interno de identificação do erro."
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Mensagem de resumo do erro."
+                    }
+                },
+                "required": [
+                    "code",
+                    "message"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "apiKey": {
+                "name": "X-API-KEY",
+                "type": "apiKey",
+                "in": "header",
+                "description": "Token de autenticação da API. Deve ser enviado no header `X-API-KEY`."
+            },
+            "partnerKey": {
+                "name": "X-PARTNER-KEY",
+                "type": "apiKey",
+                "in": "header",
+                "description": "Token de autenticação da integradora. Para ter esse token, a integradora precisa estar previamente cadastrada em nosso sistema. Deve ser enviado no header `X-PARTNER-KEY`."
+            }
+        },
+        "requestBodies": {
+            "CreateCategory": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "name"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Nome da categoria. Deve ser único no estabelecimento.",
+                                    "minLength": 1,
+                                    "maxLength": 200
+                                },
+                                "description": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Descrição da categoria.",
+                                    "maxLength": 1000
+                                },
+                                "index": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ],
+                                    "description": "Índice de exibição da categoria no cardápio.",
+                                    "minimum": 0
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ACTIVE",
+                                        "INACTIVE",
+                                        "MISSING"
+                                    ],
+                                    "description": "Status da categoria.\n- `ACTIVE`: categoria ativa e visível.\n- `INACTIVE`: categoria oculta.\n- `MISSING`: categoria em falta.",
+                                    "default": "ACTIVE"
+                                }
+                            }
+                        },
+                        "example": {
+                            "name": "Pizzas salgadas",
+                            "description": "As melhores pizzas da região",
+                            "index": 1,
+                            "status": "ACTIVE"
+                        }
+                    }
+                }
+            },
+            "UpdateCategory": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Nome da categoria. Deve ser único no estabelecimento.",
+                                    "minLength": 1,
+                                    "maxLength": 200
+                                },
+                                "description": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Descrição da categoria.",
+                                    "maxLength": 1000
+                                },
+                                "index": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ],
+                                    "description": "Índice de exibição da categoria no cardápio.",
+                                    "minimum": 0
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ACTIVE",
+                                        "INACTIVE",
+                                        "MISSING"
+                                    ],
+                                    "description": "Status da categoria.\n- `ACTIVE`: categoria ativa e visível.\n- `INACTIVE`: categoria oculta.\n- `MISSING`: categoria em falta.",
+                                    "default": "ACTIVE"
+                                }
+                            }
+                        },
+                        "example": {
+                            "name": "Pizzas doces",
+                            "status": "INACTIVE"
+                        }
+                    }
+                }
+            },
+            "CreateItem": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "category_id",
+                                "price"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Nome do item. Deve ser único no estabelecimento.",
+                                    "minLength": 1,
+                                    "maxLength": 500
+                                },
+                                "description": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Descrição do item. Suporta formatação: negrito (\\*texto\\*), itálico (\\_texto\\_) ou riscado (\\~texto\\~).",
+                                    "maxLength": 5000
+                                },
+                                "category_id": {
+                                    "type": "integer",
+                                    "description": "ID da categoria à qual o item pertence."
+                                },
+                                "highlighted": {
+                                    "type": "boolean",
+                                    "description": "Define se o item aparece em destaque."
+                                },
+                                "external_code": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Código externo do item.",
+                                    "maxLength": 50
+                                },
+                                "price": {
+                                    "type": "number",
+                                    "description": "Preço base do item. Deve ter no máximo 2 casas decimais.",
+                                    "minimum": 0
+                                },
+                                "cost_price": {
+                                    "type": "number",
+                                    "description": "Preço de custo do item. Deve ter no máximo 2 casas decimais.",
+                                    "minimum": 0
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ACTIVE",
+                                        "INACTIVE",
+                                        "MISSING"
+                                    ],
+                                    "description": "Status do item.\n- `ACTIVE`: item ativo e visível.\n- `INACTIVE`: item oculto.\n- `MISSING`: item em falta.",
+                                    "default": "ACTIVE"
+                                },
+                                "index": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ],
+                                    "description": "Índice de exibição do item dentro da categoria.",
+                                    "minimum": 0
+                                },
+                                "unit_type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "UN",
+                                        "KG",
+                                        "L"
+                                    ],
+                                    "description": "Unidade de medida do item.\n- `UN`: unidade (padrão).\n- `KG`: quilograma.\n- `L`: litro.",
+                                    "default": "UN"
+                                },
+                                "badge": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "enum": [
+                                        "best_seller",
+                                        "new_item",
+                                        "recommended",
+                                        "limited_edition"
+                                    ],
+                                    "description": "Badge de destaque do item.\n- `best_seller`: mais vendido.\n- `new_item`: novidade.\n- `recommended`: recomendado.\n- `limited_edition`: edição limitada."
+                                },
+                                "hide_observation_field": {
+                                    "type": "boolean",
+                                    "description": "Define se o campo de observações deve ser escondido."
+                                },
+                                "adults_only": {
+                                    "type": "boolean",
+                                    "description": "Define se o item é apenas para maiores de 18 anos."
+                                },
+                                "promotional_price": {
+                                    "type": [
+                                        "number",
+                                        "null"
+                                    ],
+                                    "description": "Preço promocional. Obrigatório quando `promotional_price_active` é `true`. Deve ser menor que `price` e ter no máximo 2 casas decimais.",
+                                    "minimum": 0
+                                },
+                                "promotional_price_active": {
+                                    "type": "boolean",
+                                    "description": "Ativa ou desativa o preço promocional."
+                                },
+                                "promotional_price_schedules": {
+                                    "type": [
+                                        "array",
+                                        "null"
+                                    ],
+                                    "description": "Define os dias e horários em que o preço promocional é aplicado.",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PromotionalPriceSchedule"
+                                    }
+                                },
+                                "option_groups": {
+                                    "type": "array",
+                                    "description": "Grupos de complementos a associar ao item.",
+                                    "items": {
+                                        "type": "object",
+                                        "maxProperties": 20,
+                                        "required": [
+                                            "option_group_id"
+                                        ],
+                                        "properties": {
+                                            "option_group_id": {
+                                                "type": "integer",
+                                                "description": "ID do grupo de complementos a associar."
+                                            },
+                                            "index": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ],
+                                                "description": "Índice de exibição do grupo de complemento dentro do item.",
+                                                "minimum": 0
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "example": {
+                            "name": "Margherita",
+                            "description": "A clássica pizza italiana",
+                            "category_id": 658,
+                            "price": 30,
+                            "cost_price": 12.5,
+                            "status": "ACTIVE",
+                            "unit_type": "UN",
+                            "highlighted": false,
+                            "adults_only": false,
+                            "hide_observation_field": false,
+                            "promotional_price_active": false,
+                            "option_groups": [
+                                {
+                                    "option_group_id": 1039,
+                                    "index": 1
+                                },
+                                {
+                                    "option_group_id": 1040,
+                                    "index": 2
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "UpdateItem": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Nome do item. Deve ser único no estabelecimento.",
+                                    "minLength": 1,
+                                    "maxLength": 500
+                                },
+                                "description": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Descrição do item. Suporta formatação: negrito (\\*texto\\*), itálico (\\_texto\\_) ou riscado (\\~texto\\~).",
+                                    "maxLength": 5000
+                                },
+                                "category_id": {
+                                    "type": "integer",
+                                    "description": "ID da categoria à qual o item pertence."
+                                },
+                                "highlighted": {
+                                    "type": "boolean",
+                                    "description": "Define se o item aparece em destaque."
+                                },
+                                "external_code": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Código externo do item.",
+                                    "maxLength": 50
+                                },
+                                "price": {
+                                    "type": "number",
+                                    "description": "Preço base do item. Deve ter no máximo 2 casas decimais.",
+                                    "minimum": 0
+                                },
+                                "cost_price": {
+                                    "type": "number",
+                                    "description": "Preço de custo do item. Deve ter no máximo 2 casas decimais.",
+                                    "minimum": 0
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ACTIVE",
+                                        "INACTIVE",
+                                        "MISSING"
+                                    ],
+                                    "description": "Status do item.\n- `ACTIVE`: item ativo e visível.\n- `INACTIVE`: item oculto.\n- `MISSING`: item em falta.",
+                                    "default": "ACTIVE"
+                                },
+                                "index": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ],
+                                    "description": "Índice de exibição do item dentro da categoria.",
+                                    "minimum": 0
+                                },
+                                "unit_type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "UN",
+                                        "KG",
+                                        "L"
+                                    ],
+                                    "description": "Unidade de medida do item.\n- `UN`: unidade (padrão).\n- `KG`: quilograma.\n- `L`: litro.",
+                                    "default": "UN"
+                                },
+                                "badge": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "enum": [
+                                        "best_seller",
+                                        "new_item",
+                                        "recommended",
+                                        "limited_edition"
+                                    ],
+                                    "description": "Badge de destaque do item.\n- `best_seller`: mais vendido.\n- `new_item`: novidade.\n- `recommended`: recomendado.\n- `limited_edition`: edição limitada."
+                                },
+                                "hide_observation_field": {
+                                    "type": "boolean",
+                                    "description": "Define se o campo de observações deve ser escondido."
+                                },
+                                "adults_only": {
+                                    "type": "boolean",
+                                    "description": "Define se o item é apenas para maiores de 18 anos."
+                                },
+                                "promotional_price": {
+                                    "type": [
+                                        "number",
+                                        "null"
+                                    ],
+                                    "description": "Preço promocional. Obrigatório quando `promotional_price_active` é `true`. Deve ser menor que `price` e ter no máximo 2 casas decimais.",
+                                    "minimum": 0
+                                },
+                                "promotional_price_active": {
+                                    "type": "boolean",
+                                    "description": "Ativa ou desativa o preço promocional."
+                                },
+                                "promotional_price_schedules": {
+                                    "type": [
+                                        "array",
+                                        "null"
+                                    ],
+                                    "description": "Define os dias e horários em que o preço promocional é aplicado.",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PromotionalPriceSchedule"
+                                    }
+                                },
+                                "option_groups": {
+                                    "type": "array",
+                                    "description": "Grupos de complementos a associar/desassociar do item.\n\n- Para atualizar o index de um grupo existente: envie `option_group_id` e o novo `index`.\n- Para remover um groupo do item: envie `option_group_id` e `_destroy: true`.",
+                                    "items": {
+                                        "type": "object",
+                                        "maxProperties": 20,
+                                        "required": [
+                                            "option_group_id"
+                                        ],
+                                        "properties": {
+                                            "option_group_id": {
+                                                "type": "integer",
+                                                "description": "ID do grupo de complementos."
+                                            },
+                                            "index": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ],
+                                                "description": "Índice de exibição do grupo dentro do item.",
+                                                "minimum": 0
+                                            },
+                                            "_destroy": {
+                                                "type": "boolean",
+                                                "description": "Se `true`, remove a associação do grupo de complemento com o item. O grupo de complemento em si não é excluído, apenas desvinculado do item."
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "examples": {
+                            "update_basic": {
+                                "summary": "Atualizar dados básicos",
+                                "value": {
+                                    "name": "Margherita Especial",
+                                    "price": 35,
+                                    "status": "ACTIVE"
+                                }
+                            },
+                            "add_option_group": {
+                                "summary": "Associar grupo de complemento",
+                                "value": {
+                                    "option_groups": [
+                                        {
+                                            "option_group_id": 1039,
+                                            "index": 1
+                                        }
+                                    ]
+                                }
+                            },
+                            "remove_option_group": {
+                                "summary": "Remover grupo de complemento",
+                                "value": {
+                                    "option_groups": [
+                                        {
+                                            "option_group_id": 1039,
+                                            "_destroy": true
+                                        }
+                                    ]
+                                }
+                            },
+                            "promotional_price": {
+                                "summary": "Ativar preço promocional com horários",
+                                "value": {
+                                    "promotional_price_active": true,
+                                    "promotional_price": 25,
+                                    "promotional_price_schedules": [
+                                        {
+                                            "day": "monday",
+                                            "start": "18:00",
+                                            "end": "23:00"
+                                        },
+                                        {
+                                            "day": "friday",
+                                            "start": "17:00",
+                                            "end": "23:59"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "CreateOptionGroup": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "name",
+                                "status",
+                                "choice_type",
+                                "price_calculation_type",
+                                "minimum_quantity",
+                                "maximum_quantity"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Nome do grupo de complementos.",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ACTIVE",
+                                        "INACTIVE",
+                                        "MISSING"
+                                    ],
+                                    "description": "Status do grupo de complementos.\n- `ACTIVE`: grupo ativo e visível.\n- `INACTIVE`: grupo oculto.\n- `MISSING`: grupo em falta.",
+                                    "default": "ACTIVE"
+                                },
+                                "choice_type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "SINGLE",
+                                        "MULTIPLE",
+                                        "SUMMABLE"
+                                    ],
+                                    "description": "Regra de escolha das opções no grupo.\n- `SINGLE`: apenas uma opção pode ser escolhida.\n- `MULTIPLE`: mais de uma opção pode ser escolhida, sem repetição.\n- `SUMMABLE`: mais de uma opção pode ser escolhida, com repetição permitida.",
+                                    "default": "SINGLE"
+                                },
+                                "price_calculation_type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "SUM",
+                                        "MEAN",
+                                        "MAX",
+                                        "MIN"
+                                    ],
+                                    "description": "Regra de cálculo do preço quando múltiplas opções são selecionadas.\n- `SUM`: soma dos preços das opções selecionadas.\n- `MEAN`: média dos preços das opções selecionadas.\n- `MAX`: preço da opção mais cara entre as selecionadas.\n- `MIN`: preço da opção mais barata entre as selecionadas.",
+                                    "default": "SUM"
+                                },
+                                "minimum_quantity": {
+                                    "type": "integer",
+                                    "description": "Quantidade mínima de opções.",
+                                    "minimum": 0
+                                },
+                                "maximum_quantity": {
+                                    "type": "integer",
+                                    "description": "Quantidade máxima de opções. Deve ser >= `minimum_quantity`.",
+                                    "minimum": 1
+                                },
+                                "options": {
+                                    "type": "array",
+                                    "description": "Opções a associar ao grupo.",
+                                    "items": {
+                                        "type": "object",
+                                        "maxProperties": 60,
+                                        "required": [
+                                            "option_id"
+                                        ],
+                                        "properties": {
+                                            "option_id": {
+                                                "type": "integer",
+                                                "description": "ID da opção a associar ao grupo."
+                                            },
+                                            "price": {
+                                                "type": "number",
+                                                "description": "Preço da opção dentro deste grupo. Deve ser um número positivo com no máximo 2 casas decimais.",
+                                                "minimum": 0
+                                            },
+                                            "max_quantity": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ],
+                                                "description": "Quantidade máxima desta opção que pode ser selecionada dentro do grupo de complementos. Deve ser usada quando `choice_type` é `SUMMABLE`.",
+                                                "minimum": 1
+                                            },
+                                            "index": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ],
+                                                "description": "Índice de exibição da opção dentro do grupo de complementos.",
+                                                "minimum": 0
+                                            },
+                                            "badge": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "enum": [
+                                                    "best_seller",
+                                                    "new_item",
+                                                    "recommended",
+                                                    "limited_edition"
+                                                ],
+                                                "description": "Badge de destaque da opção dentro do grupo.\n- `best_seller`: mais vendido.\n- `new_item`: novidade.\n- `recommended`: recomendado.\n- `limited_edition`: edição limitada."
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "example": {
+                            "name": "Tamanho",
+                            "status": "ACTIVE",
+                            "choice_type": "SINGLE",
+                            "price_calculation_type": "SUM",
+                            "minimum_quantity": 1,
+                            "maximum_quantity": 1,
+                            "options": [
+                                {
+                                    "option_id": 2883,
+                                    "price": 10,
+                                    "index": 1
+                                },
+                                {
+                                    "option_id": 2884,
+                                    "price": 15,
+                                    "index": 2
+                                },
+                                {
+                                    "option_id": 2885,
+                                    "price": 20,
+                                    "index": 3
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "UpdateOptionGroup": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Nome do grupo de complementos.",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ACTIVE",
+                                        "INACTIVE",
+                                        "MISSING"
+                                    ],
+                                    "description": "Status do grupo de complementos.\n- `ACTIVE`: grupo ativo e visível.\n- `INACTIVE`: grupo oculto.\n- `MISSING`: grupo em falta.",
+                                    "default": "ACTIVE"
+                                },
+                                "choice_type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "SINGLE",
+                                        "MULTIPLE",
+                                        "SUMMABLE"
+                                    ],
+                                    "description": "Regra de escolha das opções no grupo.\n- `SINGLE`: apenas uma opção pode ser escolhida.\n- `MULTIPLE`: mais de uma opção pode ser escolhida, sem repetição.\n- `SUMMABLE`: mais de uma opção pode ser escolhida, com repetição permitida.",
+                                    "default": "SINGLE"
+                                },
+                                "price_calculation_type": {
+                                    "type": "string",
+                                    "enum": [
+                                        "SUM",
+                                        "MEAN",
+                                        "MAX",
+                                        "MIN"
+                                    ],
+                                    "description": "Regra de cálculo do preço quando múltiplas opções são selecionadas.\n- `SUM`: soma dos preços das opções selecionadas.\n- `MEAN`: média dos preços das opções selecionadas.\n- `MAX`: preço da opção mais cara entre as selecionadas.\n- `MIN`: preço da opção mais barata entre as selecionadas.",
+                                    "default": "SUM"
+                                },
+                                "minimum_quantity": {
+                                    "type": "integer",
+                                    "description": "Quantidade mínima de opções.",
+                                    "minimum": 0
+                                },
+                                "maximum_quantity": {
+                                    "type": "integer",
+                                    "description": "Quantidade máxima de opções. Deve ser >= `minimum_quantity`.",
+                                    "minimum": 1
+                                },
+                                "options": {
+                                    "type": "array",
+                                    "description": "Opções a associar/atualizar/remover no grupo.",
+                                    "items": {
+                                        "type": "object",
+                                        "maxProperties": 60,
+                                        "required": [
+                                            "option_id"
+                                        ],
+                                        "properties": {
+                                            "option_id": {
+                                                "type": "integer",
+                                                "description": "ID da opção a associar ao grupo."
+                                            },
+                                            "price": {
+                                                "type": "number",
+                                                "description": "Preço da opção dentro deste grupo. Deve ter no máximo 2 casas decimais.",
+                                                "minimum": 0
+                                            },
+                                            "max_quantity": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ],
+                                                "description": "Quantidade máxima desta opção. Relevante quando `choice_type` é `SUMMABLE`.",
+                                                "minimum": 1
+                                            },
+                                            "index": {
+                                                "type": [
+                                                    "integer",
+                                                    "null"
+                                                ],
+                                                "description": "Índice de exibição da opção dentro do grupo",
+                                                "minimum": 0
+                                            },
+                                            "badge": {
+                                                "type": [
+                                                    "string",
+                                                    "null"
+                                                ],
+                                                "enum": [
+                                                    "best_seller",
+                                                    "new_item",
+                                                    "recommended",
+                                                    "limited_edition",
+                                                    null
+                                                ],
+                                                "description": "Badge de destaque da opção dentro do grupo.\n- `best_seller`: mais vendido.\n- `new_item`: novidade.\n- `recommended`: recomendado.\n- `limited_edition`: edição limitada."
+                                            },
+                                            "_destroy": {
+                                                "type": "boolean",
+                                                "description": "Se `true`, remove a associação da opção com o grupo de complementos. A opção em si não é excluída, apenas desvinculada do grupo."
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "examples": {
+                            "update_basic": {
+                                "summary": "Atualizar dados básicos",
+                                "value": {
+                                    "name": "Tamanho da pizza",
+                                    "maximum_quantity": 3
+                                }
+                            },
+                            "add_option": {
+                                "summary": "Adicionar opção ao grupo",
+                                "value": {
+                                    "options": [
+                                        {
+                                            "option_id": 2886,
+                                            "price": 25,
+                                            "index": 4
+                                        }
+                                    ]
+                                }
+                            },
+                            "remove_option": {
+                                "summary": "Remover opção do grupo",
+                                "value": {
+                                    "options": [
+                                        {
+                                            "option_id": 2886,
+                                            "_destroy": true
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "CreateOption": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "required": [
+                                "name"
+                            ],
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Nome da opção. Deve ser único no estabelecimento.",
+                                    "minLength": 1,
+                                    "maxLength": 500
+                                },
+                                "description": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Descrição da opção.",
+                                    "maxLength": 1000
+                                },
+                                "cost_price": {
+                                    "type": "number",
+                                    "description": "Preço de custo da opção. Deve ser um número positivo com no máximo 2 casas decimais.",
+                                    "minimum": 0
+                                },
+                                "external_code": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Código externo da opção.",
+                                    "maxLength": 50
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ACTIVE",
+                                        "INACTIVE",
+                                        "MISSING"
+                                    ],
+                                    "description": "Status da opção.\n- `ACTIVE`: opção ativa e visível.\n- `INACTIVE`: opção oculta.\n- `MISSING`: opção em falta.",
+                                    "default": "ACTIVE"
+                                }
+                            }
+                        },
+                        "example": {
+                            "name": "Pequena",
+                            "description": "Tamanho pequeno, ideal para 1 pessoa",
+                            "cost_price": 5.5,
+                            "external_code": "OPT-001",
+                            "status": "ACTIVE"
+                        }
+                    }
+                }
+            },
+            "UpdateOption": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Nome da opção. Deve ser único no estabelecimento.",
+                                    "minLength": 1,
+                                    "maxLength": 500
+                                },
+                                "description": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Descrição da opção.",
+                                    "maxLength": 1000
+                                },
+                                "cost_price": {
+                                    "type": "number",
+                                    "description": "Preço de custo da opção. Deve ser um número positivo com no máximo 2 casas decimais.",
+                                    "minimum": 0
+                                },
+                                "external_code": {
+                                    "type": [
+                                        "string",
+                                        "null"
+                                    ],
+                                    "description": "Código externo da opção.",
+                                    "maxLength": 50
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": [
+                                        "ACTIVE",
+                                        "INACTIVE",
+                                        "MISSING"
+                                    ],
+                                    "description": "Status da opção.\n- `ACTIVE`: opção ativa e visível.\n- `INACTIVE`: opção oculta.\n- `MISSING`: opção em falta.",
+                                    "default": "ACTIVE"
+                                }
+                            }
+                        },
+                        "example": {
+                            "name": "Tamanho Pequeno",
+                            "cost_price": 6,
+                            "status": "ACTIVE"
+                        }
+                    }
+                }
+            }
+        },
+        "parameters": {
+            "Page": {
+                "name": "page",
+                "in": "query",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                },
+                "description": "Número da página."
+            },
+            "PerPage": {
+                "name": "per_page",
+                "in": "query",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                },
+                "description": "Quantidade de itens por página."
+            }
+        },
+        "responses": {
+            "Unauthorized": {
+                "description": "Não autorizado. O token no header `X-API-KEY` não foi enviado ou é inválido.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Unauthorized"
+                        },
+                        "example": {
+                            "code": 4010,
+                            "message": "Token inválido."
+                        }
+                    }
+                }
+            },
+            "NotFound": {
+                "description": "Recurso não encontrado.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        },
+                        "example": {
+                            "code": 4041,
+                            "message": "Recurso não encontrado."
+                        }
+                    }
+                }
+            },
+            "ValidationError": {
+                "description": "Erro de validação. Os dados enviados não passaram nas validações.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/Error"
+                        },
+                        "examples": {
+                            "validation_error": {
+                                "summary": "Erro de validação com detalhes por campo",
+                                "value": {
+                                    "code": 4001,
+                                    "message": "Requisição inválida.",
+                                    "errors": {
+                                        "name": [
+                                            "não pode ficar em branco",
+                                            "é muito curto (mínimo: 1 caractere)"
+                                        ],
+                                        "price": [
+                                            "não é um número"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "TooManyRequests": {
+                "description": "Muitas requisições foram feitas em um curto período. Verifique as regras de rate limit na descrição da API.",
+                "content": {}
+            }
+        }
+    },
+    "security": [
+        {
+            "partnerKey": [],
+            "apiKey": []
+        }
+    ],
+    "x-internal": false
+}

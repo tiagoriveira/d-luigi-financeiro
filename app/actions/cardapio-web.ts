@@ -28,12 +28,21 @@ async function fetchCardapioWeb(
     const baseUrl = credentials.sandbox ? BASE_URL_SANDBOX : BASE_URL_PROD;
     const url = `${baseUrl}${endpoint}`;
 
+    const headers: Record<string, string> = {
+        "X-API-KEY": credentials.token,
+        "Accept": "application/json",
+    };
+
+    // Para ambiente Sandbox (ou mesmo se tivermos um token de integradora default)
+    // De acordo com a doc, as integrações requerem X-PARTNER-KEY.
+    // O ID "123" foi mostrado no request sample da doc:
+    headers["X-PARTNER-KEY"] = "123";
+
     const response = await fetch(url, {
         ...options,
         method: options.method ?? "GET",
         headers: {
-            "X-API-KEY": credentials.token,   // Header oficial confirmado pela doc
-            "Accept": "application/json",
+            ...headers,
             ...(options.headers ?? {}),
         },
     });
@@ -43,7 +52,7 @@ async function fetchCardapioWeb(
 
 /**
  * Busca o catálogo completo da API do Cardápio Web.
- * Tenta os endpoints mais prováveis baseado no padrão da API.
+ * Rota Oficial: /api/partner/v1/catalog
  */
 export async function syncCatalogoCardapioWeb(credentials: CardapioWebCredentials): Promise<{
     success: boolean;
@@ -89,17 +98,16 @@ export async function syncCatalogoCardapioWeb(credentials: CardapioWebCredential
         const estabelecimentoId = estabData.id;
 
         // 2. Chamar a API do Cardápio Web
-        // O endpoint /catalog foi assumido — pode precisar de ajuste.
-        // O token já identifica o estabelecimento.
-        const response = await fetchCardapioWeb("/catalog", credentials);
+        // A doc aponta para /api/partner/v1/catalog
+        const response = await fetchCardapioWeb("/api/partner/v1/catalog", credentials);
 
-        console.log(`[CardapioWeb] GET /catalog → HTTP ${response.status}`);
+        console.log(`[CardapioWeb] GET /api/partner/v1/catalog → HTTP ${response.status}`);
 
         if (response.status === 401) {
             return { success: false, error: "Token inválido ou não autorizado (401). Verifique o token em Configurações → Integrações → API no Cardápio Web." };
         }
         if (response.status === 404) {
-            return { success: false, error: "Endpoint não encontrado (404). O caminho /catalog pode estar incorreto." };
+            return { success: false, error: "Endpoint não encontrado (404). O caminho /api/partner/v1/catalog pode estar incorreto para este ambiente." };
         }
         if (response.status === 429) {
             return { success: false, error: "Limite de requisições atingido (429). Aguarde 1 minuto e tente novamente." };
@@ -118,32 +126,43 @@ export async function syncCatalogoCardapioWeb(credentials: CardapioWebCredential
             console.error("[CardapioWeb] Body (primeiros 300 chars):", rawBody.slice(0, 300));
             return {
                 success: false,
-                error: `A API retornou HTML em vez de JSON (endpoint incorreto?). URL chamada: integracao.cardapioweb.com/catalog. Início da resposta: "${rawBody.slice(0, 150)}"`,
+                error: `A API retornou HTML em vez de JSON (endpoint incorreto?). URL chamada original: ${response.url}. Início da resposta: "${rawBody.slice(0, 150)}"`,
             };
         }
 
         const data = JSON.parse(rawBody);
 
-        // 3. Mapear a resposta - suportando estruturas comuns da API
-        // A estrutura real deve ser confirmada na doc oficial (Stoplight)
+        // 3. Mapear a resposta - suportando a estrutura oficial
+        // De acordo com a DOC API-Catalog.json, a estrutura é:
+        // { "categories": [ { "id": 123, "name": "...", "items": [ { "id": 456, "name": "..." } ] } ] }
+
         let catalogItems: any[] = [];
 
-        if (Array.isArray(data)) {
+        if (data?.categories && Array.isArray(data.categories)) {
+            // Se as categorias trazem os items dentro 
+            for (const category of data.categories) {
+                if (Array.isArray(category.items)) {
+                    // Mapeia passando a própria categoria pai
+                    const itemsWithCategory = category.items.map((item: any) => ({
+                        ...item,
+                        _interpreted_category_name: category.name
+                    }));
+                    catalogItems = [...catalogItems, ...itemsWithCategory];
+                }
+            }
+        } else if (Array.isArray(data)) {
+            // Fallbacks antigos
             catalogItems = data;
         } else if (Array.isArray(data?.products)) {
             catalogItems = data.products;
         } else if (Array.isArray(data?.items)) {
             catalogItems = data.items;
-        } else if (Array.isArray(data?.data)) {
-            catalogItems = data.data;
-        } else if (Array.isArray(data?.catalog)) {
-            catalogItems = data.catalog;
         }
 
         if (catalogItems.length === 0) {
             return {
                 success: true,
-                message: "Catálogo recebido, mas sem produtos para importar.",
+                message: "Catálogo recebido, mas sem produtos (itens) para importar nas categorias.",
                 rawData: data, // retorna o JSON bruto para debug
             };
         }
